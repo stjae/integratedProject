@@ -7,8 +7,8 @@ public class Player : BaseCharacter
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
 
-        moveDir = transform.right * x + transform.forward * z;
-        Move();
+        Vector3 inputDir = transform.right * x + transform.forward * z;
+        Move(inputDir);
 
         if (Input.GetButtonDown("Jump") && characterState.isGrounded)
             Jump();

@@ -12,6 +12,8 @@ public class BaseCharacter : MonoBehaviour
     [HideInInspector] public string targetName;
     public GameObject targetObj;
     public Vector3 moveDir;
+    public ContactPoint[] contactPoints;
+    public GameObject contactObj;
 
     private class ModelInfo
     {
@@ -38,7 +40,7 @@ public class BaseCharacter : MonoBehaviour
         public bool isJumping;
         public bool isGrounded;
         public bool isOnSlope;
-        public bool isForwardBlocked;
+        public bool isCollided;
         public bool isArrived;
     }
 
@@ -57,6 +59,7 @@ public class BaseCharacter : MonoBehaviour
     {
         InitComponent();
         GetModelInfo();
+
     }
 
     protected virtual void FixedUpdate()
@@ -106,11 +109,11 @@ public class BaseCharacter : MonoBehaviour
         characterState.isMoving = (rigBody.velocity.sqrMagnitude > 0) ? true : false;
     }
 
-    void CheckForwardBlocked()
-    {
-        bool isBlocked = Physics.Raycast(transform.position, Vector3.forward, 0.1f);
-        characterState.isForwardBlocked = isBlocked;
-    }
+    // void CheckForwardBlocked()
+    // {
+    //     bool isBlocked = Physics.Raycast(transform.position, Vector3.forward, 0.1f);
+    //     characterState.isForwardBlocked = isBlocked;
+    // }
     #endregion
     #region Target Information
     void CheckArrived()
@@ -153,20 +156,28 @@ public class BaseCharacter : MonoBehaviour
         {
             Quaternion targetAngle = GetAngleToTarget();
             Vector3 targetDirection = GetDirectionToTarget();
-            moveDir = targetDirection;
 
             Rotate(targetAngle);
-            Move();
+            Move(targetDirection);
 
             CheckArrived();
         }
     }
     #endregion
 
-    protected virtual void Move()
+    protected virtual void Move(Vector3 direction)
     {
         if (characterState.isOnSlope)
-            moveDir = Vector3.ProjectOnPlane(moveDir, groundProp.slopeNormal);
+            moveDir = Vector3.ProjectOnPlane(direction, groundProp.slopeNormal);
+        else if (!characterState.isGrounded) // for gizmo check
+            moveDir = rigBody.velocity;
+        else if (characterState.isCollided && direction.z > 0)
+        {
+            float dotProduct = Vector3.Dot(contactObj.transform.TransformDirection(Vector3.left), rigBody.transform.TransformDirection(new Vector3(0f, 0f, direction.z)));
+            moveDir = contactObj.transform.TransformDirection(new Vector3(-dotProduct, 0f, 0f));
+        }
+        else
+            moveDir = direction;
         moveDir *= characterState.isRunning ? moveProp.speed * moveProp.RunningCoef : moveProp.speed;
 
         float yDir = characterState.isOnSlope && !characterState.isJumping ? moveDir.y : rigBody.velocity.y;
@@ -178,7 +189,15 @@ public class BaseCharacter : MonoBehaviour
     protected virtual void Jump()
     {
         characterState.isJumping = true;
-        rigBody.AddForce(Vector3.up * moveProp.jumpForce, ForceMode.Impulse);
+        // rigBody.AddForce(Vector3.up * moveProp.jumpForce, ForceMode.Impulse);
+        // rigBody.velocity = transform.up * moveProp.jumpForce;
+
+        if (characterState.isCollided)
+            moveDir = new Vector3(moveDir.x, transform.up.y * moveProp.jumpForce, 0f);
+        else
+            moveDir = new Vector3(moveDir.x, transform.up.y * moveProp.jumpForce, moveDir.z);
+        // moveDir = new Vector3(0f, transform.up.y * moveProp.jumpForce, 0f);
+        rigBody.velocity = moveDir;
     }
 
     protected virtual void Rotate(Quaternion angle)
@@ -189,6 +208,43 @@ public class BaseCharacter : MonoBehaviour
     void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, Vector3.forward * 5);
+        Gizmos.DrawRay(transform.position, moveDir * 5);
+        // Gizmos.color = Color.blue;
+
+        // if (contactPoints != null && contactObj != null)
+        // {
+        //     foreach (ContactPoint cp in contactPoints)
+        //     {
+        //         Gizmos.color = Color.red;
+        //         // Gizmos.DrawRay(cp.point, contactObj.transform.TransformDirection(Vector3.forward) * 5);
+        //         Gizmos.DrawRay(cp.point, rigBody.transform.TransformDirection(new Vector3(moveDir.x, 0f, 0f)) * 5); // this
+        //         Gizmos.color = Color.green;
+        //         // Gizmos.DrawRay(cp.point, contactObj.transform.TransformDirection(Vector3.left) * 5); // this
+        //         Gizmos.DrawRay(cp.point, rigBody.transform.TransformDirection(new Vector3(0f, moveDir.y, 0f)) * 5);
+        //         Gizmos.color = Color.blue;
+        //         // Gizmos.DrawRay(cp.point, contactObj.transform.TransformDirection(Vector3.up) * 5);
+        //         Gizmos.DrawRay(cp.point, rigBody.transform.TransformDirection(new Vector3(0f, 0f, moveDir.z)) * 5);
+        //         Gizmos.color = Color.cyan;
+        //         // Gizmos.DrawRay()
+        //     }
+        // }
+    }
+
+    void OnCollisionStay(Collision collision)
+    {
+        Debug.Log("collisionEnter with " + collision.gameObject.name);
+        contactPoints = collision.contacts;
+        if (collision.gameObject.name != "Ground")
+        {
+            characterState.isCollided = true;
+            contactObj = collision.gameObject;
+        }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        characterState.isCollided = false;
+        contactObj = null;
+        contactPoints = null;
     }
 }
