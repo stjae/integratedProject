@@ -12,8 +12,6 @@ public class BaseCharacter : MonoBehaviour
     [HideInInspector] public string targetName;
     public GameObject targetObj;
     public Vector3 moveDir;
-    public ContactPoint[] contactPoints;
-    public GameObject contactObj;
     public Vector3 inputDir;
 
     private class ModelInfo
@@ -49,7 +47,10 @@ public class BaseCharacter : MonoBehaviour
     {
         public float maxSlopeAngle;
         public Vector3 slopeNormal;
+        public ContactPoint[] contactPoints;
+        public GameObject contactObj;
         public float collisionAngle;
+        public bool multiCollision;
         public Vector3 rotatedNormal;
     }
 
@@ -71,6 +72,7 @@ public class BaseCharacter : MonoBehaviour
         CheckMoving();
         CheckSlope();
         CheckTarget();
+        HandleMultiCollision();
     }
 
     void InitComponent()
@@ -93,16 +95,17 @@ public class BaseCharacter : MonoBehaviour
     {
         bool isGrounded = Physics.Raycast(transform.position, Vector3.down, modelInfo.distToGround + 0.2f);
         characterState.isGrounded = isGrounded;
-        rigBody.useGravity = !characterState.isGrounded;
+        rigBody.useGravity = !isGrounded;
         characterState.isJumping = !isGrounded;
     }
 
     void CheckSlope()
     {
         // TODO: maxSlopeAngle
-        Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit);
+        bool isHit = Physics.SphereCast(transform.position, capsCollider.radius, Vector3.down, out RaycastHit hit, modelInfo.distToGround + 0.01f);
         surfaceProp.slopeNormal = hit.normal;
-        characterState.isOnSlope = hit.normal != Vector3.up ? true : false;
+        characterState.isOnSlope = hit.normal.y != 1.0f && isHit ? true : false;
+        if (characterState.isOnSlope) characterState.isGrounded = true;
     }
 
     void CheckMoving()
@@ -174,14 +177,15 @@ public class BaseCharacter : MonoBehaviour
         surfaceProp.collisionAngle <= -90 && surfaceProp.collisionAngle >= -180 ||
         surfaceProp.collisionAngle >= 90 && surfaceProp.collisionAngle <= 180)
         {
-            if (contactPoints != null)
-                moveDir = Vector3.ProjectOnPlane(inputDir, contactPoints[0].normal);
+            if (surfaceProp.contactPoints != null)
+                moveDir = Vector3.ProjectOnPlane(inputDir, surfaceProp.contactPoints[0].normal);
         }
 
         moveDir *= characterState.isRunning ? moveProp.speed * moveProp.RunningCoef : moveProp.speed;
 
-        float yDir = characterState.isOnSlope && contactPoints != null && contactPoints[0].separation == 0 ? moveDir.y : rigBody.velocity.y; // when character is on slope
+        float yDir = characterState.isOnSlope && surfaceProp.contactPoints != null && surfaceProp.contactPoints[0].separation == 0 ? moveDir.y : rigBody.velocity.y; // when character is on slope
 
+        // if (characterState.isGrounded)
         rigBody.velocity = new Vector3(moveDir.x, yDir, moveDir.z);
     }
 
@@ -200,12 +204,20 @@ public class BaseCharacter : MonoBehaviour
         transform.rotation = angle;
     }
 
+    void HandleMultiCollision()
+    {
+        if (surfaceProp.multiCollision)
+        {
+
+        }
+    }
+
     void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, inputDir * 5);
+        // Gizmos.DrawRay(transform.position, rigBody.velocity * 5);
 
-        if (contactPoints != null && contactObj != null)
+        if (surfaceProp.contactPoints != null && surfaceProp.contactObj != null)
         {
             Gizmos.color = Color.cyan;
             Gizmos.DrawRay(transform.position, moveDir * 2);
@@ -217,17 +229,23 @@ public class BaseCharacter : MonoBehaviour
         // Debug.Log("collisionEnter with " + collision.gameObject.name);
         if (collision.gameObject.name != "Ground")
         {
-            contactPoints = collision.contacts;
+            surfaceProp.contactPoints = collision.contacts;
             characterState.isCollided = true;
-            contactObj = collision.gameObject;
-            surfaceProp.collisionAngle = Vector3.SignedAngle(inputDir, contactPoints[0].normal, Vector3.up);
+            if (surfaceProp.contactObj != null && surfaceProp.contactObj.name != collision.gameObject.name)
+            {
+                surfaceProp.multiCollision = true;
+                Debug.Log("multicollision");
+            }
+            surfaceProp.contactObj = collision.gameObject;
+            surfaceProp.collisionAngle = Vector3.SignedAngle(inputDir, surfaceProp.contactPoints[0].normal, Vector3.up);
         }
     }
 
     void OnCollisionExit(Collision collision)
     {
         characterState.isCollided = false;
-        contactObj = null;
-        contactPoints = null;
+        surfaceProp.contactObj = null;
+        surfaceProp.contactPoints = null;
+        surfaceProp.multiCollision = false;
     }
 }
