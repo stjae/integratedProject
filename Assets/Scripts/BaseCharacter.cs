@@ -64,7 +64,6 @@ public class BaseCharacter : MonoBehaviour
     {
         InitComponent();
         GetModelInfo();
-
     }
 
     protected virtual void FixedUpdate()
