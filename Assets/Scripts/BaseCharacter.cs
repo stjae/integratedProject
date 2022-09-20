@@ -47,10 +47,11 @@ public class BaseCharacter : MonoBehaviour
     {
         public float maxSlopeAngle;
         public Vector3 slopeNormal;
-        public ContactPoint[] contactPoints;
+        public ContactPoint contactPoint;
         public GameObject contactObj;
         public float collisionAngle;
         public bool multiCollision;
+        public Vector3 multiCollisionVector;
         public Vector3 rotatedNormal;
     }
 
@@ -177,16 +178,15 @@ public class BaseCharacter : MonoBehaviour
         surfaceProp.collisionAngle <= -90 && surfaceProp.collisionAngle >= -180 ||
         surfaceProp.collisionAngle >= 90 && surfaceProp.collisionAngle <= 180)
         {
-            if (surfaceProp.contactPoints != null)
-                moveDir = Vector3.ProjectOnPlane(inputDir, surfaceProp.contactPoints[0].normal);
+            moveDir = Vector3.ProjectOnPlane(inputDir, surfaceProp.contactPoint.normal);
         }
 
         moveDir *= characterState.isRunning ? moveProp.speed * moveProp.RunningCoef : moveProp.speed;
 
-        float yDir = characterState.isOnSlope && surfaceProp.contactPoints != null && surfaceProp.contactPoints[0].separation == 0 ? moveDir.y : rigBody.velocity.y; // when character is on slope
+        float yDir = characterState.isOnSlope && surfaceProp.contactPoint.separation == 0 ? moveDir.y : rigBody.velocity.y; // when character is on slope
 
-        // if (characterState.isGrounded)
-        rigBody.velocity = new Vector3(moveDir.x, yDir, moveDir.z);
+        if (characterState.isGrounded)
+            rigBody.velocity = new Vector3(moveDir.x, yDir, moveDir.z);
     }
 
     protected virtual void Jump()
@@ -208,36 +208,24 @@ public class BaseCharacter : MonoBehaviour
     {
         if (surfaceProp.multiCollision)
         {
-
-        }
-    }
-
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        // Gizmos.DrawRay(transform.position, rigBody.velocity * 5);
-
-        if (surfaceProp.contactPoints != null && surfaceProp.contactObj != null)
-        {
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawRay(transform.position, moveDir * 2);
+            // rigBody.velocity = surfaceProp.multiCollisionVector;
         }
     }
 
     void OnCollisionStay(Collision collision)
     {
-        // Debug.Log("collisionEnter with " + collision.gameObject.name);
         if (collision.gameObject.name != "Ground")
         {
-            surfaceProp.contactPoints = collision.contacts;
             characterState.isCollided = true;
             if (surfaceProp.contactObj != null && surfaceProp.contactObj.name != collision.gameObject.name)
             {
+                surfaceProp.multiCollisionVector = surfaceProp.contactPoint.normal + collision.GetContact(0).normal;
                 surfaceProp.multiCollision = true;
                 Debug.Log("multicollision");
             }
             surfaceProp.contactObj = collision.gameObject;
-            surfaceProp.collisionAngle = Vector3.SignedAngle(inputDir, surfaceProp.contactPoints[0].normal, Vector3.up);
+            surfaceProp.contactPoint = collision.GetContact(0);
+            surfaceProp.collisionAngle = Vector3.SignedAngle(inputDir, surfaceProp.contactPoint.normal, Vector3.up);
         }
     }
 
@@ -245,7 +233,6 @@ public class BaseCharacter : MonoBehaviour
     {
         characterState.isCollided = false;
         surfaceProp.contactObj = null;
-        surfaceProp.contactPoints = null;
         surfaceProp.multiCollision = false;
     }
 }
