@@ -29,9 +29,10 @@ public class Player : BaseCharacter
 
     protected override void Awake()
     {
-        cam = GetComponentInChildren<Camera>();
-        crossHair = GameObject.Find("CrossHair").GetComponent<Image>();
         base.Awake();
+
+        cam = GetComponentInChildren<Camera>();
+        crossHair = GameObject.Find("Crosshair").GetComponent<Image>();
     }
 
     void Start()
