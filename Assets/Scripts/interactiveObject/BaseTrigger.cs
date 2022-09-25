@@ -10,18 +10,15 @@ public class BaseTrigger : MonoBehaviour
 
     public enum STATE { INACTIVE, ACTIVE, TRIGGERED };
     protected STATE m_state;
-    protected List<GameObject> m_objects;
+    protected List<GameObject> m_objectList;
 
     public STATE GetState() { return m_state; }
 
-    public void Inactivate()
+    public void Deactivate()
     {
-        if(m_state != STATE.INACTIVE)
-        {
-            m_boxCollider.enabled = false;
-            m_state = STATE.INACTIVE;
-            m_objects.Clear();
-        }
+        m_boxCollider.enabled = false;
+        m_state = STATE.INACTIVE;
+        m_objectList.Clear();
     }
     public void Activate()
     {
@@ -29,24 +26,24 @@ public class BaseTrigger : MonoBehaviour
         {
             m_boxCollider.enabled = true;
             m_state = STATE.ACTIVE;
-            m_objects.Clear();
+            m_objectList.Clear();
         }
     }
 
-    private void Awake()
+    protected virtual void Awake()
     {
         m_boxCollider = GetComponent<BoxCollider>();
         m_boxCollider.isTrigger = true;
 
-        m_objects = new List<GameObject>();
+        m_objectList = new List<GameObject>();
 
-        Inactivate();
+        Deactivate();
     }
 
     private void Update()
     {
         if(m_state == STATE.INACTIVE) { return; }
 
-        m_state = (m_objects.Count > 0) ? STATE.TRIGGERED : STATE.ACTIVE;
+        m_state = (m_objectList.Count > 0) ? STATE.TRIGGERED : STATE.ACTIVE;
     }
 }

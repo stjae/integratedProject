@@ -4,17 +4,19 @@ using UnityEngine;
 
 public class CollisionTrigger : BaseTrigger
 {
+    protected override void Awake() { base.Awake(); }
+
     private void OnTriggerEnter(Collider other)
     {
         if (m_state == STATE.INACTIVE) { return; }
 
-        m_objects.Add(other.gameObject);
+        m_objectList.Add(other.gameObject);
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (m_state == STATE.INACTIVE) { return; }
 
-        m_objects.Remove(other.gameObject);
+        m_objectList.Remove(other.gameObject);
     }
 }
