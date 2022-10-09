@@ -45,7 +45,7 @@ public class BaseCharacter : PhysicsModule
         _rigBody.velocity = new Vector3(_moveVector.x, transform.up.y * _jumpForce, _moveVector.z);
     }
 
-    void Awake()
+    protected virtual void Awake()
     {
         _rigBody = GetComponent<Rigidbody>();
         _capsCollider = GetComponent<CapsuleCollider>();
@@ -56,7 +56,7 @@ public class BaseCharacter : PhysicsModule
 
     protected virtual void Update()
     {
-        if (IsGrounded || IsOnSlope)
+        if (IsGrounded)
         {
             float verticalForce = IsJumping ? _rigBody.velocity.y : _moveVector.y;
             _rigBody.velocity = new Vector3(_moveVector.x, verticalForce, _moveVector.z);

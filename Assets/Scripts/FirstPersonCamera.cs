@@ -3,16 +3,11 @@ using UnityEngine;
 
 public class FirstPersonCamera : MonoBehaviour
 {
-    [Serializable]
-    public class CameraProperty
-    {
-        [Range(1f, 1000f)]
-        public float sensitivity = 600f;
-        [HideInInspector] public float xRotation = 0f;
-    }
+    [Range(1f, 1000f)]
+    float _sensitivity = 600f;
+    float _xRotation = 0f;
 
-    public GameObject player;
-    public CameraProperty camProp = new CameraProperty();
+    GameObject player;
 
     void Start()
     {
@@ -21,23 +16,18 @@ public class FirstPersonCamera : MonoBehaviour
 
     void Awake()
     {
-        InitComponent();
-    }
-
-    void InitComponent()
-    {
         player = GameObject.Find("Player");
     }
 
     void Update()
     {
-        float mouseX = Input.GetAxis("Mouse X") * camProp.sensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * camProp.sensitivity * Time.deltaTime;
+        float mouseX = Input.GetAxis("Mouse X") * _sensitivity * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * _sensitivity * Time.deltaTime;
 
-        camProp.xRotation -= mouseY;
-        camProp.xRotation = Mathf.Clamp(camProp.xRotation, -90f, 90f);
+        _xRotation -= mouseY;
+        _xRotation = Mathf.Clamp(_xRotation, -90f, 90f);
 
         player.transform.Rotate(Vector3.up * mouseX);
-        transform.localRotation = Quaternion.Euler(camProp.xRotation, 0f, 0f);
+        transform.localRotation = Quaternion.Euler(_xRotation, 0f, 0f);
     }
 }

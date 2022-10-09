@@ -10,6 +10,8 @@ public static class UserInput
 
 public class Player : BaseCharacter
 {
+    Camera _cam;
+
     void GetInputVector()
     {
         UserInput.x = Input.GetAxis("Horizontal");
@@ -31,11 +33,24 @@ public class Player : BaseCharacter
         SetRun = Input.GetKey(KeyCode.LeftShift) ? true : false;
         MoveVector *= IsRunning ? Speed * RunningCoef : Speed;
 
-        if (Input.GetKey(KeyCode.Space))
+        if (Input.GetKey(KeyCode.Space) && IsGrounded)
         {
             SetJump = true;
             Jump();
         }
+
+        if (Input.GetKey(KeyCode.Mouse0))
+        {
+            // Fire();
+        }
+    }
+
+    protected override void Awake()
+    {
+        base.Awake();
+
+        _cam = GetComponentInChildren<Camera>();
+        _cam.gameObject.AddComponent<FirstPersonCamera>();
     }
 
     protected override void Update()
