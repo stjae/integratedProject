@@ -65,10 +65,4 @@ public class BaseCharacter : PhysicsModule
         if (IsGrounded && IsJumping)
             SetJump = false;
     }
-
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, MoveVector * 5);
-    }
 }
