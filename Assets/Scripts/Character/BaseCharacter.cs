@@ -19,6 +19,8 @@ public class BaseCharacter : PhysicsModule
     // Vector
     [SerializeField] Vector3 _moveVector;
 
+    protected GameObject _characterModel;
+
     protected CollisionManager _collision;
     protected SurfaceManager _surface;
 
@@ -47,6 +49,8 @@ public class BaseCharacter : PhysicsModule
 
     protected virtual void Awake()
     {
+        _characterModel = transform.Find("Model").gameObject;
+
         _rigBody = GetComponent<Rigidbody>();
         _capsCollider = GetComponent<CapsuleCollider>();
 
