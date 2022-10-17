@@ -66,6 +66,5 @@ public class Player : BaseCharacter
         SetCharacterAction();
 
         base.Update();
-        Debug.Log("test");
     }
 }

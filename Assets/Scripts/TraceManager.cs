@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TraceManager : MonoBehaviour
@@ -11,17 +12,23 @@ public class TraceManager : MonoBehaviour
     float _radius = 0.2f;
 
     public int PointCount { get { return _pointCount; } set { _pointCount = value; } }
-    public int Angle { set { _angle = value; } }
+    public int HitPositionCount { get { return _hitPositionFront.Count; } }
+    public int Angle { get { return _angle; } set { _angle = value; } }
     public float Radius { set { _radius = value; } }
 
-    Vector3[] _hitPosition;
+    List<Vector3> _hitPositionFront;
+    List<Vector3> _hitPositionBack;
     RaycastHit[] _hit;
 
     GameObject _sphere;
-    GameObject[] _trace;
+    GameObject _frontTrace;
+    GameObject _backTrace;
+    List<GameObject> _traceFront;
+    List<GameObject> _traceBack;
 
     public RaycastHit[] Hit { get { return _hit; } }
-    public GameObject[] Trace { get { return _trace; } }
+    public List<GameObject> TraceFront { get { return _traceFront; } }
+    public List<GameObject> TraceBack { get { return _traceBack; } }
 
     FirstPersonCamera _cam;
 
@@ -30,8 +37,8 @@ public class TraceManager : MonoBehaviour
 
     void InitTrace()
     {
-        GameObject _frontTrace = Instantiate(_sphere, Vector3.zero, Quaternion.identity);
-        GameObject _backTrace = Instantiate(_sphere, Vector3.zero, Quaternion.identity);
+        _frontTrace = Instantiate(_sphere, Vector3.zero, Quaternion.identity);
+        _backTrace = Instantiate(_sphere, Vector3.zero, Quaternion.identity);
 
         Renderer _frontTraceRenderer = _frontTrace.GetComponent<Renderer>();
         Renderer _backTraceRenderer = _backTrace.GetComponent<Renderer>();
@@ -41,30 +48,50 @@ public class TraceManager : MonoBehaviour
 
         for (int i = 0; i < _pointCount; i++)
         {
-            _trace[i] = Instantiate(_frontTrace, transform.position, Quaternion.identity);
-            _trace[_pointCount + i] = Instantiate(_backTrace, transform.position, Quaternion.identity);
+            _traceFront.Add(Instantiate(_frontTrace, Vector3.zero, Quaternion.identity));
+            _traceBack.Add(Instantiate(_backTrace, Vector3.zero, Quaternion.identity));
+        }
+    }
+
+    public void AddTrace()
+    {
+        for (int i = _traceFront.Count; i < _pointCount; i++)
+        {
+            _traceFront.Add(Instantiate(_frontTrace, Vector3.zero, Quaternion.identity));
+            _traceBack.Add(Instantiate(_backTrace, Vector3.zero, Quaternion.identity));
+        }
+    }
+
+    public void RemoveTrace()
+    {
+        for (int i = _pointCount; i < _traceFront.Count; i++)
+        {
+            DestroyImmediate(_traceFront[i]);
+            _traceFront.RemoveAt(i);
+            DestroyImmediate(_traceBack[i]);
+            _traceBack.RemoveAt(i);
         }
     }
 
     void CastRay()
     {
-        for (int i = 0; i < _pointCount; i++)
+        for (int i = 0; i < _hitPositionFront.Count; i++)
         {
-            _isRayHitFront[i] = Physics.Raycast(_cam.transform.TransformPoint(_hitPosition[i]), _cam.transform.forward, out _hit[i], 10f, (-1) - (1 << _traceLayer | 1 << _playerLayer));
+            _isRayHitFront[i] = Physics.Raycast(_cam.transform.TransformPoint(_hitPositionFront[i]), _cam.transform.forward, out _hit[i], 10f, (-1) - (1 << _traceLayer | 1 << _playerLayer));
 
             if (_isRayHitFront[i])
-                _isRayHitBack[i] = Physics.Raycast(_cam.transform.TransformPoint(_hitPosition[_pointCount + i]), -_cam.transform.forward, out _hit[_pointCount + i], 10f - _hit[i].distance, (-1) - (1 << _traceLayer | 1 << _playerLayer));
+                _isRayHitBack[i] = Physics.Raycast(_cam.transform.TransformPoint(_hitPositionBack[i]), -_cam.transform.forward, out _hit[_hitPositionFront.Count + i], 10f - _hit[i].distance, (-1) - (1 << _traceLayer | 1 << _playerLayer));
             else
                 _isRayHitBack[i] = false;
         }
 
-        for (int i = 0; i < _pointCount; i++)
+        for (int i = 0; i < _hitPositionFront.Count; i++)
         {
             if (!_isRayHitFront[i])
             {
-                _trace[i].SetActive(false);
+                _traceFront[i].SetActive(false);
 
-                for (int j = 0; j < _pointCount; j++)
+                for (int j = 0; j < _hitPositionFront.Count; j++)
                 {
                     if (_isRayHitFront[j])
                     {
@@ -77,26 +104,26 @@ public class TraceManager : MonoBehaviour
                 }
             }
             else
-                _trace[i].SetActive(true);
+                _traceFront[i].SetActive(true);
 
             if (!_isRayHitBack[i])
             {
-                _trace[_pointCount + i].SetActive(false);
+                _traceBack[i].SetActive(false);
 
-                for (int j = 0; j < _pointCount; j++)
+                for (int j = 0; j < _hitPositionFront.Count; j++)
                 {
                     if (_isRayHitBack[j])
                     {
-                        _hit[_pointCount + i].point = _hit[_pointCount + j].point;
+                        _hit[_hitPositionFront.Count + i].point = _hit[_hitPositionFront.Count + j].point;
                     }
                     else
                     {
-                        _hit[_pointCount + i].point = _cam.transform.TransformPoint(Vector3.forward * 10f);
+                        _hit[_hitPositionFront.Count + i].point = _cam.transform.TransformPoint(Vector3.forward * 10f);
                     }
                 }
             }
             else
-                _trace[_pointCount + i].SetActive(true);
+                _traceBack[i].SetActive(true);
         }
     }
 
@@ -112,18 +139,22 @@ public class TraceManager : MonoBehaviour
         _sphere.layer = _traceLayer;
 
         _pointCount = 360 / _angle;
-        _hitPosition = new Vector3[_pointCount * 2];
+
+        _hitPositionFront = new List<Vector3>();
+        _hitPositionBack = new List<Vector3>();
 
         _hit = new RaycastHit[_pointCount * 2];
-        _trace = new GameObject[_pointCount * 2];
+
+        _traceFront = new List<GameObject>();
+        _traceBack = new List<GameObject>();
 
         _isRayHitFront = new bool[_pointCount];
         _isRayHitBack = new bool[_pointCount];
 
         for (int i = 0; i < _pointCount; i++)
         {
-            _hitPosition[i] = Quaternion.AngleAxis(_angle * i, Vector3.forward) * Vector3.left * _radius;
-            _hitPosition[_pointCount + i] = Quaternion.AngleAxis(_angle * i, Vector3.forward) * (Vector3.left * _radius + Vector3.forward * 10);
+            _hitPositionFront.Add(Quaternion.AngleAxis(_angle * i, Vector3.forward) * Vector3.left * _radius);
+            _hitPositionBack.Add(Quaternion.AngleAxis(_angle * i, Vector3.forward) * (Vector3.left * _radius + Vector3.forward * 10));
         }
 
         InitTrace();
@@ -131,10 +162,12 @@ public class TraceManager : MonoBehaviour
 
     void Update()
     {
-        for (int i = 0; i < _pointCount; i++)
+        Debug.Log(string.Format("PointCount = {0}, TraceFrontCount = {1}", _pointCount, _traceFront.Count));
+
+        for (int i = 0; i < _hitPositionFront.Count; i++)
         {
-            _hitPosition[i] = Quaternion.AngleAxis(_angle * (i + _deltaAngle), Vector3.forward) * Vector3.left * _radius;
-            _hitPosition[_pointCount + i] = Quaternion.AngleAxis(_angle * (i + _deltaAngle), Vector3.forward) * (Vector3.left * _radius + Vector3.forward * 10);
+            _hitPositionFront[i] = Quaternion.AngleAxis(_angle * (i + _deltaAngle), Vector3.forward) * Vector3.left * _radius;
+            _hitPositionBack[i] = Quaternion.AngleAxis(_angle * (i + _deltaAngle), Vector3.forward) * (Vector3.left * _radius + Vector3.forward * 10);
         }
     }
 
