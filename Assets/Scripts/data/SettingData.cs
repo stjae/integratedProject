@@ -1,23 +1,28 @@
 using UnityEngine;
+using JsonDataType;
 
 [System.Serializable]
-public class SettingData : Data
+public class SettingData
 {
+    // volume min/max: [0.01, 1] [100 * %]
+    public const float minVol = 0.01f;
+    public const float maxVol = 1.0f;
+
     // graphics
-    ivec2 resolution; // x = width, y = height
-    bool vSync;
+    private ivec2 resolution; // x = width, y = height
+    private bool vSync;
 
     // audio
-    // volume range: [-80, 20] [dB]
-    float volMaster;
-    float volBGM;
-    float volSFX;
+    // volume range: [0.01, 1] [100 * %]
+    private float volMaster;
+    private float volBGM;
+    private float volSFX;
 
-    bool muteMaster;
-    bool muteBGM;
-    bool muteSFX;
+    private bool playMaster;
+    private bool playBGM;
+    private bool playSFX;
 
-    private float ClampVolume(float vol) { return Mathf.Clamp(vol, -80.0f, 20.0f); }
+    private float ClampVolume(float vol) { return Mathf.Clamp(vol, minVol, maxVol); }
 
     // get, set
     public ivec2 Resolution { get { return resolution; } set { resolution.X = Mathf.Max(value.X, 0); resolution.Y = Mathf.Max(value.Y, 0); } }
@@ -27,24 +32,24 @@ public class SettingData : Data
     public float VolBGM    { get { return volBGM;    } set { volBGM    = ClampVolume(value); } }
     public float VolSFX    { get { return volSFX;    } set { volSFX    = ClampVolume(value); } }
 
-    public bool MuteMaster { get { return muteMaster; } set { muteMaster = value; } }
-    public bool MuteBGM    { get { return muteBGM;    } set { muteBGM    = value; } }
-    public bool MuteSFX    { get { return muteSFX;    } set { muteSFX    = value; } }
+    public bool PlayMaster { get { return playMaster; } set { playMaster = value; } }
+    public bool PlayBGM    { get { return playBGM;    } set { playBGM    = value; } }
+    public bool PlaySFX    { get { return playSFX;    } set { playSFX    = value; } }
 
-    public override void Init()
+    public SettingData()
     {
         // graphics
         resolution = new ivec2(Screen.width, Screen.height); // retrieve display information
         vSync = false;
 
         // audio
-        // default volume: 0 [dB]
-        volMaster = 0.0f;
-        volBGM = 0.0f;
-        volSFX = 0.0f;
+        // default volume: 1 [100 * %]
+        volMaster = maxVol;
+        volBGM    = maxVol;
+        volSFX    = maxVol;
 
-        muteMaster = false;
-        muteBGM = false;
-        muteSFX = false;
+        playMaster = true;
+        playBGM    = true;
+        playSFX    = true;
     }
 }
