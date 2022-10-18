@@ -2,6 +2,9 @@ using System;
 using UnityEngine;
 using TMPro;
 
+using Poly.UI;
+using Poly.Data;
+
 public class GraphicsSettingUI : UINode
 {
     private SettingManager settingManager;
@@ -17,26 +20,26 @@ public class GraphicsSettingUI : UINode
     {
         settingManager = FindObjectOfType<SettingManager>();
 
-        // set dropdown options
+        // prepare dropdown options
         dropdown_resolution.ClearOptions();
-        foreach(ResolutionOption ro in Enum.GetValues(typeof(ResolutionOption)))
+        foreach(SettingData.ResolutionOption ro in Enum.GetValues(typeof(SettingData.ResolutionOption)))
         {
             TMP_Dropdown.OptionData option = new TMP_Dropdown.OptionData();
             switch(ro)
             {
-                case ResolutionOption.FitToDisplay:
+                case SettingData.ResolutionOption.FitToDisplay:
                     option.text = string.Format("Fit to Display ({0}x{1})", Screen.mainWindowDisplayInfo.width, Screen.mainWindowDisplayInfo.height);
                     break;
-                case ResolutionOption.FHD:
+                case SettingData.ResolutionOption.FHD:
                     option.text = "1920x1080";
                     break;
-                case ResolutionOption.HD:
+                case SettingData.ResolutionOption.HD:
                     option.text = "1280x720";
                     break;
-                case ResolutionOption.SVGA:
+                case SettingData.ResolutionOption.SVGA:
                     option.text = "800x600";
                     break;
-                case ResolutionOption.VGA:
+                case SettingData.ResolutionOption.VGA:
                     option.text = "640x480";
                     break;
                 default:
@@ -47,7 +50,7 @@ public class GraphicsSettingUI : UINode
         }
 
         // add event listener
-        dropdown_resolution.onValueChanged.AddListener((int call) => { settingManager.GetSettingData().Resolution = (ResolutionOption)call; settingManager.Apply(); });
+        dropdown_resolution.onValueChanged.AddListener((int call) => { settingManager.GetSettingData().Resolution = (SettingData.ResolutionOption)call; settingManager.Apply(); });
 
         toggle_fullScreen.onValueChanged.AddListener((bool value) => { settingManager.GetSettingData().FullScreen = value; settingManager.Apply(); });
         toggle_vsync.onValueChanged.AddListener((bool value)      => { settingManager.GetSettingData().VSync      = value; settingManager.Apply(); });

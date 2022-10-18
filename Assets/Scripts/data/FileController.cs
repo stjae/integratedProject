@@ -1,56 +1,59 @@
 using UnityEngine;
 using System.IO;
 
-public class FileController
+namespace Poly.Data
 {
-    // filepath under Application.persistentDataPath
-    string filepath;
-    public string Filepath { get { return filepath; } set { filepath = value; } }
-
-    private string GetFullFilepath(string filepath) { return Application.persistentDataPath + "/" + filepath; }
-
-    public string ReadFile()
+    public class FileController
     {
-        string fullFilepath = GetFullFilepath(filepath);
+        // filepath under Application.persistentDataPath
+        string filepath;
+        public string Filepath { get { return filepath; } set { filepath = value; } }
 
-        if (File.Exists(fullFilepath))
+        private string GetFullFilepath(string filepath) { return Application.persistentDataPath + "/" + filepath; }
+
+        public string ReadFile()
         {
-            StreamReader streamReader = new StreamReader(fullFilepath);
-            string data = streamReader.ReadToEnd();
+            string fullFilepath = GetFullFilepath(filepath);
 
-            streamReader.Close();
-            return data;
+            if (File.Exists(fullFilepath))
+            {
+                StreamReader streamReader = new StreamReader(fullFilepath);
+                string data = streamReader.ReadToEnd();
+
+                streamReader.Close();
+                return data;
+            }
+            else
+            {
+                Debug.LogWarningFormat("File not found: {0}", fullFilepath);
+                return null;
+            }
         }
-        else
+
+        public void WriteFile(string data)
         {
-            Debug.LogWarningFormat("File not found: {0}", fullFilepath);
-            return null;
+            string fullFilepath = GetFullFilepath(filepath);
+
+            FileStream fileStream = new FileStream(fullFilepath, FileMode.Create);
+            StreamWriter streamWriter = new StreamWriter(fileStream);
+            streamWriter.Write(data);
+
+            streamWriter.Close();
+            fileStream.Close();
         }
-    }
 
-    public void WriteFile(string data)
-    {
-        string fullFilepath = GetFullFilepath(filepath);
-
-        FileStream fileStream = new FileStream(fullFilepath, FileMode.Create);
-        StreamWriter streamWriter = new StreamWriter(fileStream);
-        streamWriter.Write(data);
-
-        streamWriter.Close();
-        fileStream.Close();
-    }
-
-    public void DeleteFile()
-    {
-        string fullFilepath = GetFullFilepath(filepath);
-
-        if(File.Exists(fullFilepath))
+        public void DeleteFile()
         {
-            File.Delete(fullFilepath);
-        }
-        else
-        {
-            Debug.LogWarningFormat("File not found: {0}", fullFilepath);
+            string fullFilepath = GetFullFilepath(filepath);
+
+            if (File.Exists(fullFilepath))
+            {
+                File.Delete(fullFilepath);
+            }
+            else
+            {
+                Debug.LogWarningFormat("File not found: {0}", fullFilepath);
+            }
         }
     }
 }

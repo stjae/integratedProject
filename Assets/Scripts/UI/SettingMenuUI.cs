@@ -1,3 +1,5 @@
+using Poly.UI;
+
 public class SettingMenuUI : UINode
 {
     // UINode

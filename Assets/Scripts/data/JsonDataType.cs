@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // serializable data types (struct) for json
-namespace JsonDataType
+namespace Poly.Data.JsonDataType
 {
     public struct ivec2
     {

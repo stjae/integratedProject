@@ -1,17 +1,20 @@
-[System.Serializable]
-public class AccountData
+namespace Poly.Data
 {
-    // login info
-    private string email;
-    private string password;
-
-    // get, set
-    public string Email { get { return email; } set { email = value; } }
-    public string Password { get { return password; } set { password = value; } }
-
-    public AccountData()
+    [System.Serializable]
+    public class AccountData
     {
-        email = "sample email";
-        password = "sample password";
+        // login info
+        private string email;
+        private string password;
+
+        // get, set
+        public string Email { get { return email; } set { email = value; } }
+        public string Password { get { return password; } set { password = value; } }
+
+        public AccountData()
+        {
+            email = "";
+            password = "";
+        }
     }
 }

@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+using Poly.Data;
+
 public class InitSceneDirector : MonoBehaviour
 {
     SettingManager settingManager;

@@ -1,30 +1,33 @@
 using UnityEngine;
 
-public class UINode : MonoBehaviour
+namespace Poly.UI
 {
-    private UINode prevNode;
-
-    protected void StepInto(UINode nextNode)
+    public class UINode : MonoBehaviour
     {
-        if(nextNode == this)
+        private UINode prevNode;
+
+        protected void StepInto(UINode nextNode)
         {
-            Debug.LogError("UINode can NOT step into itself.");
-            return;
+            if (nextNode == this)
+            {
+                Debug.LogError("UINode can NOT step into itself.");
+                return;
+            }
+
+            nextNode.prevNode = this;
+            nextNode.gameObject.SetActive(true);
+
+            gameObject.SetActive(false);
         }
 
-        nextNode.prevNode = this;
-        nextNode.gameObject.SetActive(true);
-
-        gameObject.SetActive(false);
-    }
-
-    protected void StepOut()
-    {
-        if(prevNode != null)
+        protected void StepOut()
         {
-            prevNode.gameObject.SetActive(true);
-        }
+            if (prevNode != null)
+            {
+                prevNode.gameObject.SetActive(true);
+            }
 
-        gameObject.SetActive(false);
+            gameObject.SetActive(false);
+        }
     }
 }

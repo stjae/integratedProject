@@ -1,9 +1,12 @@
-[System.Serializable]
-public class SaveData
+namespace Poly.Data
 {
-    int chapter;
-    int level;
-    int checkpoint;
+    [System.Serializable]
+    public class SaveData
+    {
+        int chapter;
+        int level;
+        int checkpoint;
 
-    public SaveData() { }
+        public SaveData() { }
+    }
 }
