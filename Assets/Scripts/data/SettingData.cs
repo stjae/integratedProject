@@ -1,5 +1,13 @@
 using UnityEngine;
-using JsonDataType;
+
+public enum ResolutionOption
+{
+    FitToDisplay,
+    FHD,  // 1920x1080
+    HD,   // 1280x720
+    SVGA, // 800x600
+    VGA   // 640x480
+};
 
 [System.Serializable]
 public class SettingData
@@ -9,7 +17,8 @@ public class SettingData
     public const float maxVol = 1.0f;
 
     // graphics
-    private ivec2 resolution; // x = width, y = height
+    private ResolutionOption resolution;
+    private bool fullScreen;
     private bool vSync;
 
     // audio
@@ -25,7 +34,8 @@ public class SettingData
     private float ClampVolume(float vol) { return Mathf.Clamp(vol, minVol, maxVol); }
 
     // get, set
-    public ivec2 Resolution { get { return resolution; } set { resolution.X = Mathf.Max(value.X, 0); resolution.Y = Mathf.Max(value.Y, 0); } }
+    public ResolutionOption Resolution { get { return resolution; } set { resolution = value; } }
+    public bool  FullScreen { get { return fullScreen; } set { fullScreen = value; } }
     public bool  VSync      { get { return vSync; } set { vSync = value; } }
 
     public float VolMaster { get { return volMaster; } set { volMaster = ClampVolume(value); } }
@@ -39,7 +49,8 @@ public class SettingData
     public SettingData()
     {
         // graphics
-        resolution = new ivec2(Screen.width, Screen.height); // retrieve display information
+        resolution = ResolutionOption.FitToDisplay;
+        fullScreen = true;
         vSync = false;
 
         // audio

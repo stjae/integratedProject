@@ -56,13 +56,33 @@ public class SettingManager : MonoBehaviour
     public void Apply()
     {
         // graphics
-
+        int width  = Screen.mainWindowDisplayInfo.width;
+        int height = Screen.mainWindowDisplayInfo.height;
+        switch (settingData.Resolution)
+        {
+            case ResolutionOption.FHD:
+                width = 1920; height = 1080;
+                break;
+            case ResolutionOption.HD:
+                width = 1280; height = 720;
+                break;
+            case ResolutionOption.SVGA:
+                width = 800; height = 600;
+                break;
+            case ResolutionOption.VGA:
+                width = 640; height = 480;
+                break;
+            default:
+                break;
+        }
+        Screen.SetResolution(width, height, settingData.FullScreen);
+        QualitySettings.vSyncCount = (settingData.VSync) ? 1 : 0;
 
         // audio
         const float muteVol = -80.0f; // [dB]
-        masterMixer.SetFloat(exposedParamName_volMaster, (settingData.PlayMaster)? 20 * Mathf.Log10(settingData.VolMaster): muteVol);
-        masterMixer.SetFloat(exposedParamName_volBGM,    (settingData.PlayBGM)?    20 * Mathf.Log10(settingData.VolBGM):    muteVol);
-        masterMixer.SetFloat(exposedParamName_volSFX,    (settingData.PlaySFX)?    20 * Mathf.Log10(settingData.VolSFX):    muteVol);
+        masterMixer.SetFloat(exposedParamName_volMaster, (settingData.PlayMaster) ? 20 * Mathf.Log10(settingData.VolMaster) : muteVol);
+        masterMixer.SetFloat(exposedParamName_volBGM,    (settingData.PlayBGM) ?    20 * Mathf.Log10(settingData.VolBGM)    : muteVol);
+        masterMixer.SetFloat(exposedParamName_volSFX,    (settingData.PlaySFX) ?    20 * Mathf.Log10(settingData.VolSFX)    : muteVol);
     }
 
     // MonoBehaviour
