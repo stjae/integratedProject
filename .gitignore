@@ -70,3 +70,25 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 [Aa]ssets/[Ss]treamingAssets/aa.meta
 [Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Firebase Unity Packages
+# [IMPORTANT] Import .unitypackage in firebase_unity_sdk_9.6.0\firebase_unity_sdk\dotnet4
+# [IMPORTANT] Do NOT import Unity.Compat.dll and Unity.Tasks.dll in Parse/Plugins
+Assets/Editor Default Resources
+Assets/ExternalDependencyManager
+Assets/Firebase
+Assets/Parse
+Assets/Plugins
+
+Assets/Editor Default Resources.meta
+Assets/ExternalDependencyManager.meta
+Assets/Firebase.meta
+Assets/Parse.meta
+Assets/Plugins.meta
+
+# iOS/Android configuration file
+GoogleService-Info.plist
+google-services.json
+
+GoogleService-Info.plist.meta
+google-services.json.meta

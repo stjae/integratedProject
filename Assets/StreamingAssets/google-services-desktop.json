@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "538920994937",
+    "firebase_url": "https://gachonunivintegratedproject-default-rtdb.firebaseio.com",
+    "project_id": "gachonunivintegratedproject",
+    "storage_bucket": "gachonunivintegratedproject.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:538920994937:android:e07c9ab4f058f094266ca8",
+        "android_client_info": {
+          "package_name": "com.Poly.Devoid"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "538920994937-gugklgsj650kv42qgfg1h3usrph67jsk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRnquVtlPyWufWnopGfpl95ixj0VJWzUk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "538920994937-gugklgsj650kv42qgfg1h3usrph67jsk.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "538920994937-qn94epo4ol4t0pgcicrv82l46svrlis8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.Poly.Devoid"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
