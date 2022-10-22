@@ -5,16 +5,16 @@ using Poly.Data.Cryptography;
 
 namespace Poly.Data
 {
-    public class AccountManager : MonoBehaviour
+    public class CookieManager : MonoBehaviour
     {
-        private const string predefinedFilepath = "recentAccount";
+        private const string predefinedFilepath = "cookie";
         private const string predefinedKey = "sample key text";
 
         private FileController fileController = new FileController();
-        private AccountData accountData = new AccountData();
+        private Cookie cookie = new Cookie();
 
         // get, set
-        public ref AccountData GetAccountData() { return ref accountData; }
+        public ref Cookie GetCookie() { return ref cookie; }
 
         // open recentAccount
         public void Open()
@@ -23,41 +23,41 @@ namespace Poly.Data
 
             if (string.IsNullOrEmpty(encryptedJson))
             {
-                accountData = new AccountData();
+                cookie = new Cookie();
             }
             else
             {
                 try
                 {
                     string json = AES.Decrypt(encryptedJson, predefinedKey);
-                    accountData = JsonConvert.DeserializeObject<AccountData>(json);
+                    cookie = JsonConvert.DeserializeObject<Cookie>(json);
                 }
                 catch (System.Exception e)
                 {
                     Debug.LogWarningFormat("Deserialization failed: {0}", e);
-                    accountData = new AccountData();
+                    cookie = new Cookie();
                 }
             }
 
-            Debug.LogFormat("AccountDataManager.Open(): {0}", JsonConvert.SerializeObject(accountData));
+            Debug.LogFormat("CookieManager.Open(): {0}", JsonConvert.SerializeObject(cookie));
         }
 
         // save recentAccount
         public void Save()
         {
-            string json = JsonConvert.SerializeObject(accountData);
+            string json = JsonConvert.SerializeObject(cookie);
             string encryptedJson = AES.Encrypt(json, predefinedKey);
 
             fileController.WriteFile(encryptedJson);
 
-            Debug.LogFormat("AccountDataManager.Save(): {0}", json);
+            Debug.LogFormat("CookieManager.Save(): {0}", json);
         }
 
         // MonoBehaviour
         private void Awake()
         {
             // singleton
-            var objs = FindObjectsOfType<AccountManager>();
+            var objs = FindObjectsOfType<CookieManager>();
             if (objs.Length > 1)
             {
                 Destroy(gameObject);
@@ -67,8 +67,13 @@ namespace Poly.Data
                 DontDestroyOnLoad(gameObject);
             }
 
-            DontDestroyOnLoad(gameObject);
             fileController.Filepath = predefinedFilepath;
+        }
+
+        private void OnApplicationQuit()
+        {
+            // autosave
+            Save();
         }
     }
 }

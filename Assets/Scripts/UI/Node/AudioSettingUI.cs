@@ -3,6 +3,7 @@ using Poly.Data;
 
 public class AudioSettingUI : UINode
 {
+    // data manager
     private SettingManager settingManager;
 
     // UI (assign in inspector)

@@ -8,10 +8,15 @@ namespace Poly.UI
 
         protected void StepInto(UINode nextNode)
         {
-            if (nextNode == this)
+            // UINode should NOT form a loop
+            // union find algorithm
+            for (UINode node = this; node != null; node = node.prevNode)
             {
-                Debug.LogError("UINode can NOT step into itself.");
-                return;
+                if(node == nextNode)
+                {
+                    Debug.LogError("UINode should NOT form a loop!");
+                    return;
+                }
             }
 
             nextNode.prevNode = this;

@@ -65,7 +65,6 @@ namespace Poly.Data
                 DontDestroyOnLoad(gameObject);
             }
 
-            DontDestroyOnLoad(gameObject);
             fileController.Filepath = null;
         }
     }
