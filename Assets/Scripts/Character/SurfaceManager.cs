@@ -7,9 +7,16 @@ public class SurfaceManager : PhysicsModule
 
     Vector3 _slopeNormal;
 
+    int _traceLayer;
+
     public bool IsGrounded { get { return _isGrounded; } }
     public bool IsOnSlope { get { return _isOnSlope; } }
     public Vector3 SlopeNormal { get { return _slopeNormal; } }
+
+    void Start()
+    {
+        _traceLayer = LayerMask.NameToLayer("Trace");
+    }
 
     public void AdjustVector()
     {
@@ -28,7 +35,7 @@ public class SurfaceManager : PhysicsModule
     public void CheckOnSlope()
     {
         // TODO: maxSlopeAngle
-        bool isHit = Physics.SphereCast(transform.position, CapsuleCollider.radius, Vector3.down, out RaycastHit hit, GetDistanceToGround() + 0.01f);
+        bool isHit = Physics.SphereCast(transform.position, CapsuleCollider.radius, Vector3.down, out RaycastHit hit, GetDistanceToGround() + 0.01f, (-1) - (1 << _traceLayer));
 
         _slopeNormal = hit.normal;
         _isOnSlope = hit.normal.y != 1.0f && isHit ? true : false;
