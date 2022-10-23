@@ -5,13 +5,13 @@ using Firebase.Auth;
 
 namespace Poly.DB
 {
-    public class UserManagement
+    public sealed class UserManagement
     {
         /// <summary>
         /// create user with email and password <br/><br/>
         /// <para>
         /// return = <br/>
-        /// FirebaseUser instance (success) <br/>
+        /// new user (!= null) (success) <br/>
         /// null (failed) <br/>
         /// </para>
         /// </summary>
@@ -21,8 +21,9 @@ namespace Poly.DB
             if(string.IsNullOrEmpty(password)) { Debug.LogError("A password must be provided.");       return null; }
 
             FirebaseAuth auth = FirebaseAuth.DefaultInstance;
-            FirebaseUser newUser = null;
+            auth.SignOut(); // ensure auth.CurrentUser == null
 
+            // create user and sign in automatically
             await auth.CreateUserWithEmailAndPasswordAsync(email, password).ContinueWith(task =>
             {
                 if (task.IsCanceled)
@@ -37,12 +38,11 @@ namespace Poly.DB
                 }
 
                 // Firebase user has been created.
-                newUser = task.Result;
-                Debug.LogFormat("newUser == auth.currUser : {0}", newUser == auth.CurrentUser);
+                FirebaseUser newUser = task.Result;
                 Debug.LogFormat("Firebase user created successfully: {0} ({1})", newUser.DisplayName, newUser.UserId);
             });
 
-            return newUser;
+            return auth.CurrentUser;
         }
 
         public static async Task UpdateUserProfile(FirebaseUser user, UserProfile profile)

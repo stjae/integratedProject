@@ -8,18 +8,35 @@ namespace Poly.DB
     public class LoginManager : MonoBehaviour
     {
         private FirebaseAuth auth;
-        private FirebaseUser user;
 
         private bool isLoggedIn;
 
         // get, set
-        public FirebaseUser User    { get { return user;       } } // read only
-        public bool IsLoggedIn      { get { return isLoggedIn; } } // read only
+        /// <summary>
+        /// current Firebase user <br/><br/>
+        /// <para>
+        /// [CAUTION] <br/>
+        /// current user (isLoggedIn == true) <br/>
+        /// null (isLoggedIn == false) <br/>
+        /// </para>
+        /// </summary>
+        public FirebaseUser User { get { return (isLoggedIn) ? auth.CurrentUser : null; } } // read only
+        public bool IsLoggedIn   { get { return isLoggedIn; } } // read only
 
-        public async Task SignIn(string email, string password)
+        /// <summary>
+        /// log in <br/><br/>
+        /// <para>
+        /// return = <br/>
+        /// verified user (isLoggedIn == true) <br/>
+        /// unverified user (!= null) (isLoggedIn == false) <br/>
+        /// null (isLoggedIn == false) <br/>
+        /// </para>
+        /// </summary>
+        public async Task<FirebaseUser> LogIn(string email, string password)
         {
-            if (isLoggedIn) { return; }
+            if (isLoggedIn) { return auth.CurrentUser; }
 
+            auth.SignOut(); // ensure auth.CurrentUser == null
             await auth.SignInWithEmailAndPasswordAsync(email, password).ContinueWith(task =>
             {
                 if (task.IsCanceled)
@@ -33,26 +50,27 @@ namespace Poly.DB
                     return;
                 }
 
-                user = task.Result;
-                if(user.IsEmailVerified)
+                FirebaseUser newUser = task.Result;
+                if (newUser.IsEmailVerified)
                 {
                     isLoggedIn = true;
-                    Debug.LogFormat("User signed in successfully: {0} ({1})", user.DisplayName, user.UserId);
+                    Debug.LogFormat("User signed in successfully: {0} ({1})", newUser.DisplayName, newUser.UserId);
                 }
                 else
                 {
                     Debug.LogError("Email not verified.");
                 }
             });
+
+            return auth.CurrentUser;
         }
 
-        public void SignOut()
+        public void LogOut()
         {
             if (!isLoggedIn) { return; }
 
-            Debug.LogFormat("Bye, {0}.", user.DisplayName);
+            Debug.LogFormat("Bye, {0}.", auth.CurrentUser.DisplayName);
             auth.SignOut();
-            user = null;
             isLoggedIn = false;
         }
 
@@ -72,13 +90,12 @@ namespace Poly.DB
 
             // init
             auth = FirebaseAuth.DefaultInstance;
-            user = null;
             isLoggedIn = false;
         }
 
         private void OnApplicationQuit()
         {
-            SignOut();
+            LogOut();
         }
     }
 }

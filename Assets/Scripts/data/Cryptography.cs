@@ -6,7 +6,7 @@ namespace Poly.Data.Cryptography
 {
     // AES encryption/decryption
     // reference: https://intro0517.tistory.com/37
-    public class AES
+    public sealed class AES
     {
         public static string Decrypt(string textToDecrypt, string key)
         {

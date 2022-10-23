@@ -1,4 +1,7 @@
+using UnityEngine;
 using TMPro;
+
+using Firebase.Auth;
 
 using Poly.UI;
 using Poly.Data;
@@ -21,10 +24,10 @@ public class LoginUI : UINode
 
     private async void OnLoginButtonClick()
     {
-        if(loginManager.IsLoggedIn) { okPopup.Open("Error", "You are already logged in."); return; }
-
         string email    = inputField_email.text;
         string password = inputField_password.text;
+
+        if (loginManager.IsLoggedIn) { okPopup.Open("Error", "You are already logged in."); return; }
 
         if (string.IsNullOrEmpty(email))    { okPopup.Open("Error", "Email address cannot be empty."); return; }
         if (string.IsNullOrEmpty(password)) { okPopup.Open("Error", "Password cannot be empty.");      return; }
@@ -37,20 +40,27 @@ public class LoginUI : UINode
         cookieManager.GetCookie().RecentEmail    = email;
         cookieManager.GetCookie().RecentPassword = password;
 
-        await loginManager.SignIn(email, password);
+        // log in
+        FirebaseUser user = await loginManager.LogIn(email, password);
 
         if(loginManager.IsLoggedIn)
         {
+            // ==== success ====
             okPopup.Open("Success", "Welcome, " + loginManager.User.DisplayName);
-        }
-        else if(!loginManager.User.IsEmailVerified)
-        {
-            await UserManagement.SendEmailVerification(loginManager.User);
-            okPopup.Open("Verify your account", string.Format("A verification email has been sent to {0}.", email));
         }
         else
         {
-            okPopup.Open("Error", "Invalid email or password");
+            // ==== failed ====
+            if (user != null)
+            {
+                // ==== unverified user ====
+                await UserManagement.SendEmailVerification(user);
+                okPopup.Open("Verify your account", string.Format("A verification email has been sent to {0}.", email));
+            }
+            else
+            {
+                okPopup.Open("Error", "Invalid email or password");
+            }
         }
 
         // unlock UI

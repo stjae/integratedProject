@@ -31,16 +31,20 @@ public class CreateAccountUI : UINode
         if (string.IsNullOrEmpty(email))    { okPopup.Open("Error", "Email address cannot be empty."); return; }
         if (string.IsNullOrEmpty(password)) { okPopup.Open("Error", "Password cannot be empty.");      return; }
 
+        if (await UserManagement.CheckIfEmailExists(email)) { okPopup.Open("Error", "This email is already in use."); return; }
+
         // lock UI
         inputField_username.interactable = false;
         inputField_email.interactable    = false;
         inputField_password.interactable = false;
         btn_createAccount.interactable   = false;
 
+        // create user
         FirebaseUser newUser = await UserManagement.CreateUser(email, password);
 
         if (newUser != null)
         {
+            // ==== success ====
             cookieManager.GetCookie().RecentEmail    = email;
             cookieManager.GetCookie().RecentPassword = password;
 
@@ -54,16 +58,8 @@ public class CreateAccountUI : UINode
         }
         else
         {
-            bool isInUse = await UserManagement.CheckIfEmailExists(email);
-
-            if (isInUse)
-            {
-                okPopup.Open("Error", "The given email is already in use.");
-            }
-            else
-            {
-                okPopup.Open("Error", "Invalid email or password");
-            }
+            // ==== failed ====
+            okPopup.Open("Error", "Invalid email or password");
         }
 
         // unlock UI

@@ -49,7 +49,7 @@ public class MainMenuUI : UINode
 
         btn_login.onClick.AddListener(() => StepInto(loginUI));
         btn_createAccount.onClick.AddListener(() => StepInto(createAccountUI));
-        btn_logout.onClick.AddListener(() => { loginManager.SignOut(); });
+        btn_logout.onClick.AddListener(() => { loginManager.LogOut(); });
     }
 
     private void Update()
