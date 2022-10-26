@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.IO;
 using Newtonsoft.Json;
 
 using Poly.Data.Cryptography;
@@ -7,19 +8,25 @@ namespace Poly.Data
 {
     public class SaveManager : MonoBehaviour
     {
-        // private const string predefinedFilepath = "save_00";
-        private const string predefinedKey = "sample key text";
+        public const string predefinedDirectory = "saves/";
+        public const string predefinedKey = "sample key text";
 
         private FileController fileController = new FileController();
-        private SaveData saveData = new SaveData();
+        private SaveData saveData;
 
         // get, set
         public ref SaveData GetSaveData() { return ref saveData; }
         // public SaveData SaveData { get { return saveData; } set { saveData = value; } }
 
-        // open setting.json
-        public void Open()
+        /// <summary>
+        /// open SaveData <br/><br/>
+        /// <para>
+        /// saveDataFilename = filepath under Application.persistentDataPath/saves
+        /// </para>
+        /// </summary>
+        public void Open(string saveDataFilename)
         {
+            fileController.Filepath = predefinedDirectory + saveDataFilename;
             string encryptedJson = fileController.ReadFile();
 
             if (string.IsNullOrEmpty(encryptedJson))
@@ -41,15 +48,30 @@ namespace Poly.Data
             }
         }
 
-        // save setting.json
+        /// <summary>
+        /// save SaveData to current file <br/><br/>
+        /// </summary>
         public void Save()
         {
             string json = JsonConvert.SerializeObject(saveData);
-            fileController.WriteFile(json);
+            string encryptedJson = AES.Encrypt(json, predefinedKey);
+
+            fileController.WriteFile(encryptedJson);
+
+            Debug.LogFormat("SaveManager.Save(): {0}", json);
         }
 
-        // apply settingData to in-game setting
-        public void Apply() { }
+        /// <summary>
+        /// save SaveData to other file <br/><br/>
+        /// <para>
+        /// saveDataFilename = filepath under Application.persistentDataPath/saves
+        /// </para>
+        /// </summary>
+        public void SaveAs(string saveDataFilename)
+        {
+            fileController.Filepath = predefinedDirectory + saveDataFilename;
+            Save();
+        }
 
         // MonoBehaviour
         private void Awake()
@@ -65,7 +87,14 @@ namespace Poly.Data
                 DontDestroyOnLoad(gameObject);
             }
 
+            // ensure "saves" folder exist under Application.persistentDataPath
+            if (!Directory.Exists(Application.persistentDataPath + predefinedDirectory))
+            {
+                Directory.CreateDirectory(Application.persistentDataPath + "/" + predefinedDirectory);
+            }
+
             fileController.Filepath = null;
+            saveData = null;
         }
     }
 }
