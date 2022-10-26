@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 using Poly.Data;
-using Poly.DB;
 
 public class InitSceneDirector : MonoBehaviour
 {

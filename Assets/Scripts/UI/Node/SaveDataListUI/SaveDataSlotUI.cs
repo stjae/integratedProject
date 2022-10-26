@@ -1,11 +1,15 @@
 using UnityEngine;
 using System.IO;
+using Newtonsoft.Json;
 using TMPro;
 
 using Poly.Data;
+using Poly.Data.Cryptography;
 
 public class SaveDataSlotUI : MonoBehaviour
 {
+    private FileController fileController = new FileController();
+
     private CookieManager cookieManager;
     private SaveManager saveManager;
 
@@ -18,24 +22,30 @@ public class SaveDataSlotUI : MonoBehaviour
 
     private void Awake()
     {
+        fileController.Filepath = SaveManager.predefinedDirectory + saveDataFilename;
+
         cookieManager = FindObjectOfType<CookieManager>();
         saveManager   = FindObjectOfType<SaveManager>();
 
-        // add event listener
-        btn_save.onClick.AddListener(() => { saveManager.SaveAs(saveDataFilename); });
+        btn_save.onClick.AddListener(() =>
+        {
+            saveManager.SaveAs(saveDataFilename);
+            Debug.LogWarning("Game saved");
+        });
+
         btn_load.onClick.AddListener(() =>
         {
             // recent save data = last loaded save data
             cookieManager.GetCookie().RecentSaveData = saveDataFilename;
 
             saveManager.Open(saveDataFilename);
-            Debug.LogWarning("TODO : LoadScene()");
+            SceneLoader.LoadSceneWithSaveData();
         });
     }
 
     private void Update()
     {
-        string fullFilepath = Application.persistentDataPath + "/saves/" + saveDataFilename;
+        string fullFilepath = Application.persistentDataPath + "/" + SaveManager.predefinedDirectory + saveDataFilename;
 
         // save button is available when a SaveData is loaded on SaveManager
         if(saveManager.GetSaveData() != null)
@@ -50,7 +60,14 @@ public class SaveDataSlotUI : MonoBehaviour
         // load button is available when a save_0n exist
         if (File.Exists(fullFilepath))
         {
-            text_saveDataInfo.text = new FileInfo(fullFilepath).LastWriteTime.ToString();
+            string encryptedJson = fileController.ReadFile();
+            string json = AES.Decrypt(encryptedJson, SaveManager.predefinedKey);
+            SaveData saveData = JsonConvert.DeserializeObject<SaveData>(json);
+
+            string savedTime = new FileInfo(fullFilepath).LastWriteTime.ToString();
+
+            text_saveDataInfo.text = string.Format("Chapter {0}, Level {1}, CheckPoint {2}\n{3}",
+                saveData.Chapter, saveData.Level, saveData.Checkpoint, new FileInfo(fullFilepath).LastWriteTime);
             btn_load.interactable  = true;
         }
         else

@@ -86,12 +86,13 @@ public class MainMenuUI : UINode
         btn_continue.onClick.AddListener(() =>
         {
             saveManager.Open(cookieManager.GetCookie().RecentSaveData);
-            Debug.LogWarning("TODO : LoadScene()");
+            SceneLoader.LoadSceneWithSaveData();
         });
         btn_loadGame.onClick.AddListener(() => StepInto(saveDataListUI));
         btn_newGame.onClick.AddListener(() =>
         {
-            Debug.LogWarning("TODO : New Game");
+            saveManager.New();
+            SceneLoader.LoadSceneWithSaveData();
         });
         btn_setting.onClick.AddListener(() => StepInto(settingMenuUI));
         btn_credits.onClick.AddListener(() => StepInto(creditsUI));

@@ -11,4 +11,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Init_Title_Main/MainScene.unity
     guid: 9b98342eb52f391448e15a09d0281468
+  - enabled: 1
+    path: Assets/Scenes/Gameplay/Chapter0/ch0_level0.unity
+    guid: 652accd5cbb12054c919c575f47091ca
+  - enabled: 1
+    path: Assets/Scenes/Gameplay/Chapter0/ch0_level1.unity
+    guid: d64bd975834d93d43939b0cbd15d2bc7
+  - enabled: 1
+    path: Assets/Scenes/Gameplay/Chapter1/ch1_level0.unity
+    guid: 8d58a6537c240214e913b7e6de634b3f
   m_configObjects: {}

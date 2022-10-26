@@ -18,6 +18,11 @@ namespace Poly.Data
         public ref SaveData GetSaveData() { return ref saveData; }
         // public SaveData SaveData { get { return saveData; } set { saveData = value; } }
 
+        public void New()
+        {
+            saveData = new SaveData();
+        }
+
         /// <summary>
         /// open SaveData <br/><br/>
         /// <para>
