@@ -3,16 +3,20 @@ using UnityEngine;
 
 public class FirstPersonCamera : MonoBehaviour
 {
-    [Serializable]
-    public class CameraProperty
-    {
-        [Range(1f, 1000f)]
-        public float sensitivity = 600f;
-        [HideInInspector] public float xRotation = 0f;
-    }
+    [Range(1f, 1000f)]
+    [SerializeField] float _sensitivity = 600f;
 
-    public GameObject player;
-    public CameraProperty camProp = new CameraProperty();
+    float _xRotateAngle = 0f;
+    float _yRotateAngle = 0f;
+
+    Vector3 _xRotateVector;
+    Vector3 _yRotateVector;
+
+    Vector3 _smoothedVector;
+    Vector3 _velocityVector = Vector3.zero;
+
+    GameObject _player;
+    GameObject _playerModel;
 
     void Start()
     {
@@ -21,23 +25,27 @@ public class FirstPersonCamera : MonoBehaviour
 
     void Awake()
     {
-        InitComponent();
-    }
-
-    void InitComponent()
-    {
-        player = GameObject.Find("Player");
+        _player = transform.GetComponentInParent<Player>().gameObject;
+        _playerModel = _player.transform.Find("Model").gameObject;
     }
 
     void Update()
     {
-        float mouseX = Input.GetAxis("Mouse X") * camProp.sensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * camProp.sensitivity * Time.deltaTime;
+        float mouseX = Input.GetAxis("Mouse X") * _sensitivity * Time.deltaTime; // horizontal mouse movement
+        float mouseY = Input.GetAxis("Mouse Y") * _sensitivity * Time.deltaTime; // vertical mouse movement
 
-        camProp.xRotation -= mouseY;
-        camProp.xRotation = Mathf.Clamp(camProp.xRotation, -90f, 90f);
+        _xRotateAngle -= mouseY;
+        _xRotateAngle = Mathf.Clamp(_xRotateAngle, -90f, 90f);
 
-        player.transform.Rotate(Vector3.up * mouseX);
-        transform.localRotation = Quaternion.Euler(camProp.xRotation, 0f, 0f);
+        _yRotateAngle += mouseX;
+
+        _xRotateVector = Vector3.right * _xRotateAngle;
+        _yRotateVector = Vector3.up * _yRotateAngle;
+
+        Vector3 rotateVector = _xRotateVector + _yRotateVector;
+        _smoothedVector = Vector3.SmoothDamp(_smoothedVector, rotateVector, ref _velocityVector, 0.02f);
+
+        _playerModel.transform.rotation = Quaternion.Euler(0f, _smoothedVector.y, 0f);
+        transform.localRotation = Quaternion.Euler(_smoothedVector);
     }
 }

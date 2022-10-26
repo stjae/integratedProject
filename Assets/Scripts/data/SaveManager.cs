@@ -21,6 +21,7 @@ namespace Poly.Data
         public void New()
         {
             saveData = new SaveData();
+            SaveAs("save_temp");
         }
 
         /// <summary>

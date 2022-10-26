@@ -118,4 +118,13 @@ public class MainMenuUI : UINode
         btn_upload.interactable   = loginManager.IsLoggedIn;
         btn_download.interactable = loginManager.IsLoggedIn;
     }
+
+    // if user clicked "Return to Title" button in PausedUI, Time.timeScale should be set as 1
+    private void OnEnable()
+    {
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
+        Time.timeScale = 1.0f;
+    }
 }

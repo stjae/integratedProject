@@ -20,4 +20,22 @@ public class InGameUI : UINode
             StepInto(inGameUI);
         }
     }
+
+    // start or resume gameplay
+    private void OnEnable()
+    {
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+
+        Time.timeScale = 1.0f;
+    }
+
+    // pause gameplay
+    private void OnDisable()
+    {
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
+        Time.timeScale = 0.0f;
+    }
 }
