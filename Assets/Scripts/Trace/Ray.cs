@@ -4,6 +4,7 @@ using UnityEngine;
 public class Ray : MonoBehaviour
 {
     FirstPersonCamera _cam;
+    TraceGun _traceGun;
     Sphere _sphere;
 
     int _rayCount;
@@ -31,8 +32,10 @@ public class Ray : MonoBehaviour
     public List<Vector3> FrontHitPoint { get { return _frontHitPoint; } }
     public List<Vector3> BackHitPoint { get { return _backHitPoint; } }
 
-    List<int> _triangle;
-    public List<int> Triangle { get { return _triangle; } set { _triangle = value; } }
+    List<int> _frontTriangle;
+    List<int> _backTriangle;
+    public List<int> FrontTriangle { get { return _frontTriangle; } set { _frontTriangle = value; } }
+    public List<int> BackTriangle { get { return _backTriangle; } set { _backTriangle = value; } }
 
     List<Vector3> _rayOriginFront;
     List<Vector3> _rayOriginBack;
@@ -49,6 +52,7 @@ public class Ray : MonoBehaviour
     void Start()
     {
         _cam = transform.GetComponentInParent<Player>().Camera;
+        _traceGun = gameObject.GetComponent<TraceGun>();
         _sphere = gameObject.GetComponent<Sphere>();
 
         _frontHit = new List<RaycastHit>();
@@ -63,7 +67,8 @@ public class Ray : MonoBehaviour
         _rayOriginBack = new List<Vector3>();
         _rayIndex = new Dictionary<string, int>();
 
-        _triangle = new List<int>();
+        _frontTriangle = new List<int>();
+        _backTriangle = new List<int>();
 
         _traceLayer = LayerMask.NameToLayer("Trace");
         _playerLayer = LayerMask.NameToLayer("Player");
@@ -91,8 +96,11 @@ public class Ray : MonoBehaviour
             _frontHitPoint.Add(Vector3.zero);
             _backHitPoint.Add(Vector3.zero);
         }
-        while (_triangle.Count < _rayCount * 6)
-            _triangle.Add(0);
+        while (_frontTriangle.Count < _rayCount * 6)
+        {
+            _frontTriangle.Add(0);
+            _backTriangle.Add(0);
+        }
 
         while (_rayOriginFront.Count > _rayCount)
         {
@@ -112,8 +120,11 @@ public class Ray : MonoBehaviour
             _frontHitPoint.RemoveAt(_frontHitPoint.Count - _rayCount);
             _backHitPoint.RemoveAt(_backHitPoint.Count - _rayCount);
         }
-        while (_triangle.Count > _rayCount * 6)
-            _triangle.RemoveAt(_triangle.Count - _rayCount * 6);
+        while (_frontTriangle.Count > _rayCount * 6)
+        {
+            _frontTriangle.RemoveAt(_frontTriangle.Count - _rayCount * 6);
+            _backTriangle.RemoveAt(_backTriangle.Count - _rayCount * 6);
+        }
     }
 
     void UpdateRayOriginPosition()
@@ -144,21 +155,21 @@ public class Ray : MonoBehaviour
             RaycastHit frontHit;
             RaycastHit backHit;
 
-            _isRayHitFront[i] = Physics.Raycast(_cam.transform.TransformPoint(_rayOriginFront[i]), _cam.transform.forward, out frontHit, 10f, (-1) - (1 << _traceLayer | 1 << _playerLayer));
-            if (_isRayHitFront[i])
+            _isRayHitFront[i] = Physics.Raycast(_cam.transform.TransformPoint(_rayOriginFront[i]), _cam.transform.forward, out frontHit, 10f, (-1) - (1 << _traceLayer | 1 << _traceGun.TraceFaceLayer | 1 << _playerLayer));
+            _isRayHitBack[i] = Physics.Raycast(_cam.transform.TransformPoint(_rayOriginBack[i]), -_cam.transform.forward, out backHit, 10f, (-1) - (1 << _traceLayer | 1 << _traceGun.TraceFaceLayer | 1 << _playerLayer));
+            if (_isRayHitFront[i] && _isRayHitBack[i])
             {
                 _frontHit[i] = frontHit;
                 _frontHitPoint[i] = frontHit.point - _cam.transform.forward * 0.01f;
 
-                _isRayHitBack[i] = Physics.Raycast(_cam.transform.TransformPoint(_rayOriginBack[i]), -_cam.transform.forward, out backHit, 10f - frontHit.distance, (-1) - (1 << _traceLayer | 1 << _playerLayer));
-                if (_isRayHitBack[i])
-                {
-                    _backHit[i] = backHit;
-                    _backHitPoint[i] = backHit.point;
-                }
+                _backHit[i] = backHit;
+                _backHitPoint[i] = backHit.point + _cam.transform.forward * 0.01f;
             }
             else
+            {
+                _isRayHitFront[i] = false;
                 _isRayHitBack[i] = false;
+            }
         }
     }
 

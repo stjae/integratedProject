@@ -24,7 +24,7 @@ MonoBehaviour:
   m_MinSize: {x: 400, y: 200}
   m_MaxSize: {x: 32384, y: 16192}
   vertical: 0
-  controlID: 12746
+  controlID: 15935
 --- !u!114 &2
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -141,7 +141,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 200}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 1
-  controlID: 12747
+  controlID: 15936
 --- !u!114 &4
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -167,7 +167,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 100}
   m_MaxSize: {x: 24288, y: 8096}
   vertical: 0
-  controlID: 12748
+  controlID: 15937
 --- !u!114 &5
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -187,8 +187,8 @@ MonoBehaviour:
     y: 0
     width: 265
     height: 472.5
-  m_MinSize: {x: 201, y: 221}
-  m_MaxSize: {x: 4001, y: 4021}
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 6}
   m_Panes:
   - {fileID: 6}
@@ -270,8 +270,8 @@ MonoBehaviour:
     y: 0
     width: 402
     height: 472.5
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 202, y: 221}
+  m_MaxSize: {x: 4002, y: 4021}
   m_ActualView: {fileID: 8}
   m_Panes:
   - {fileID: 8}
@@ -502,9 +502,9 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: -13.698101, y: -0.62133586, z: -5.10545}
+    m_Target: {x: -12.408442, y: 4.56869, z: -0.73642373}
     speed: 2
-    m_Value: {x: -13.698101, y: -0.62133586, z: -5.10545}
+    m_Value: {x: -12.408442, y: 4.56869, z: -0.73642373}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -551,9 +551,9 @@ MonoBehaviour:
     m_GridAxis: 1
     m_gridOpacity: 0.5
   m_Rotation:
-    m_Target: {x: -0.0020706626, y: -0.8755466, z: -0.0036441018, w: 0.48321107}
+    m_Target: {x: 0.09868724, y: -0.7590266, z: 0.11848239, w: 0.6326093}
     speed: 2
-    m_Value: {x: -0.002070567, y: -0.87550616, z: -0.0036439337, w: 0.48318878}
+    m_Value: {x: 0.09868265, y: -0.7589913, z: 0.11847688, w: 0.6325799}
   m_Size:
     m_Target: 2.7856896
     speed: 2
@@ -601,8 +601,8 @@ MonoBehaviour:
     y: 0
     width: 416
     height: 472.5
-  m_MinSize: {x: 202, y: 221}
-  m_MaxSize: {x: 4002, y: 4021}
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 2}
   m_Panes:
   - {fileID: 2}
@@ -627,8 +627,8 @@ MonoBehaviour:
     y: 472.5
     width: 1083
     height: 324.5
-  m_MinSize: {x: 101, y: 121}
-  m_MaxSize: {x: 4001, y: 4021}
+  m_MinSize: {x: 100, y: 100}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 12}
   m_Panes:
   - {fileID: 11}
