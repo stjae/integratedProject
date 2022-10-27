@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TraceGun : MonoBehaviour
@@ -12,8 +11,10 @@ public class TraceGun : MonoBehaviour
     Ray _ray;
     Sphere _sphere;
 
-    List<Vector3> _vertexPosition;
-    List<int> _triangle;
+    RaycastHit _frontCenterHit;
+    RaycastHit _backCenterHit;
+    bool _isFrontCenterHit;
+    bool _isBackCenterHit;
 
     GameObject emptyObj;
     Mesh mesh;
@@ -45,7 +46,7 @@ public class TraceGun : MonoBehaviour
             bool isHitFrontCenter = false;
             bool isHitBackCenter = false;
 
-            for (int i = lastIndex; i > lastIndex - (360 / _ray.Angle); i--)
+            for (int i = lastIndex; i > lastIndex - _ray.VertexCount; i--)
             {
                 if (_ray.IsRayHitFront[i] && !isFrontCenterPositionSet)
                 {
@@ -82,10 +83,12 @@ public class TraceGun : MonoBehaviour
             }
         }
 
-        RaycastHit frontCenterHit;
-        RaycastHit backCenterHit;
-        Physics.Raycast(_cam.transform.position, frontCenterPosition - _cam.transform.position, out frontCenterHit, 10f, (-1) - (1 << _ray.TraceLayer | 1 << _ray.PlayerLayer));
-        Physics.Raycast(_cam.transform.TransformPoint(Vector3.forward * 10), backCenterPosition - _cam.transform.TransformPoint(Vector3.forward * 10), out backCenterHit, 10f - frontCenterHit.distance, (-1) - (1 << _ray.TraceLayer | 1 << _ray.PlayerLayer));
+        _isFrontCenterHit = Physics.Raycast(_cam.transform.position, frontCenterPosition - _cam.transform.position, out _frontCenterHit, 10f, (-1) - (1 << _ray.TraceLayer | 1 << _ray.PlayerLayer));
+        _isBackCenterHit = Physics.Raycast(_cam.transform.TransformPoint(Vector3.forward * 10), backCenterPosition - _cam.transform.TransformPoint(Vector3.forward * 10), out _backCenterHit, 10f - _frontCenterHit.distance, (-1) - (1 << _ray.TraceLayer | 1 << _ray.PlayerLayer));
+
+        _ray.FrontHit[_ray.FrontHit.Count - 1] = _frontCenterHit;
+        _ray.FrontHitPoint[_ray.FrontHitPoint.Count - 1] = _frontCenterHit.point;
+        _ray.IsRayHitFront[_ray.IsRayHitFront.Count - 1] = _isFrontCenterHit;
 
         // GameObject frontCenterTrace = Instantiate(_sphere.RedSphere, frontCenterHit.point, Quaternion.identity);
         // Destroy(frontCenterTrace, 2f);
@@ -98,47 +101,125 @@ public class TraceGun : MonoBehaviour
 
     void CreateTriangle()
     {
-        for (int i = 0; i < _ray.Triangle.Count; i++)
-            _ray.Triangle[i] = 0;
-
-        for (int i = 0; i < (360 / _ray.Angle) * 3; i++)
+        for (int i = 0; i < 4; i++)
         {
-            if (_ray.IsRayHitFront[i])
+            for (int j = 0; j < _ray.VertexCount; j++)
             {
-                for (int j = 0; j < 3; j++)
+                if (_ray.IsRayHitFront[_ray.RayIndex[string.Format("{0}{1}", i, j)]])
                 {
-                    switch (j)
+                    for (int k = 0; k < 6; k++)
                     {
-                        case 0:
-                            _ray.Triangle[(i * 3) + j] = i;
-                            break;
-                        case 1:
-                            _ray.Triangle[(i * 3) + j] = i + (360 / _ray.Angle);
-                            break;
-                        case 2:
-                            _ray.Triangle[(i * 3) + j] = (i + 1) % (360 / _ray.Angle) == 0 ? i + 1 - (360 / _ray.Angle) : (i + 1);
-                            break;
-                        default:
-                            break;
-                    }
+                        switch (k)
+                        {
+                            case 0:
+                                _ray.Triangle[(i * _ray.VertexCount + j) * 6 + k] = _ray.RayIndex[string.Format("{0}{1}", i, j)];
+                                break;
+                            case 1:
+                                if (i < 3)
+                                {
+                                    int index = (j == 0) ? _ray.RayIndex[string.Format("{0}{1}", i + 1, _ray.VertexCount - 1)] : _ray.RayIndex[string.Format("{0}{1}", i + 1, j - 1)];
+                                    if (_ray.IsRayHitFront[index])
+                                    {
+                                        _ray.Triangle[((i * _ray.VertexCount + j) * 6 + k)] = index;
+                                    }
+                                    else
+                                    {
+                                        int increment = 0;
+                                        while (index + _ray.VertexCount * increment < _ray.RayCount)
+                                        {
+                                            if (_ray.IsRayHitFront[index + _ray.VertexCount * increment])
+                                            {
+                                                _ray.Triangle[(i * _ray.VertexCount + j) * 6 + k] = index + _ray.VertexCount * increment;
+                                                break;
+                                            }
+                                            else if (index + _ray.VertexCount * (increment + 1) >= _ray.RayCount)
+                                            {
+                                                ClearTriangle(i, j, 0, 3);
+                                            }
+                                            increment++;
+                                        }
+                                    }
+                                }
+                                break;
+                            case 2:
+                                if (i < 3)
+                                {
+                                    if (_ray.IsRayHitFront[_ray.RayIndex[string.Format("{0}{1}", i + 1, j)]])
+                                        _ray.Triangle[(i * _ray.VertexCount + j) * 6 + k] = _ray.RayIndex[string.Format("{0}{1}", i + 1, j)];
+                                    else
+                                        ClearTriangle(i, j, 0, 3);
+                                }
+                                break;
 
+                            case 3:
+                                _ray.Triangle[(i * _ray.VertexCount + j) * 6 + k] = _ray.RayIndex[string.Format("{0}{1}", i, j)]; // 00
+                                break;
+                            case 4:
+                                int idx4 = (i < 3) ? _ray.RayIndex[string.Format("{0}{1}", i + 1, j)] : _ray.FrontHit.Count - 1; // 10
+                                if (_ray.IsRayHitFront[idx4])
+                                    _ray.Triangle[(i * _ray.VertexCount + j) * 6 + k] = idx4;
+                                else
+                                {
+                                    ClearTriangle(i, j, 3, 6);
+                                }
+                                break;
+                            case 5:
+                                int idx = (j == _ray.VertexCount - 1) ? _ray.RayIndex[string.Format("{0}{1}", i, 0)] : _ray.RayIndex[string.Format("{0}{1}", i, j + 1)]; // 01
+                                if (_ray.IsRayHitFront[idx])
+                                {
+                                    _ray.Triangle[((i * _ray.VertexCount + j) * 6 + k)] = idx;
+                                }
+                                else
+                                {
+                                    int inc = 0;
+                                    while (idx + _ray.VertexCount * inc < _ray.RayCount)
+                                    {
+                                        if (_ray.IsRayHitFront[idx + _ray.VertexCount * inc])
+                                        {
+                                            _ray.Triangle[(i * _ray.VertexCount + j) * 6 + k] = idx + _ray.VertexCount * inc;
+                                            break;
+                                        }
+                                        else if (idx + _ray.VertexCount * (inc + 1) >= _ray.RayCount)
+                                        {
+                                            ClearTriangle(i, j, 3, 6);
+                                        }
+                                        inc++;
+                                    }
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                else
+                {
+                    ClearTriangle(i, j, 0, 6);
                 }
             }
         }
-        // Debug.Log(_ray.RayCount);
-        string str = "";
-        int count = 0;
 
-        foreach (var item in _ray.Triangle)
+        // string str = "";
+        // int count = 0;
+
+        // foreach (var item in _ray.Triangle)
+        // {
+        //     str += item + " ";
+        //     count++;
+
+        //     if (count % 3 == 0)
+        //         str += "| ";
+        // }
+
+        // Debug.Log(str);
+    }
+
+    void ClearTriangle(int i, int j, int a, int b)
+    {
+        for (int k = a; k < b; k++)
         {
-            str += item + " ";
-            count++;
-
-            if (count % 3 == 0)
-                str += "|";
+            _ray.Triangle[(i * _ray.VertexCount + j) * 6 + k] = 0;
         }
-
-        Debug.Log(str);
     }
 
     void CreateShape()
@@ -154,14 +235,18 @@ public class TraceGun : MonoBehaviour
         _ray = gameObject.AddComponent<Ray>();
         _sphere = gameObject.AddComponent<Sphere>();
 
-        _vertexPosition = new List<Vector3>();
-        _triangle = new List<int>();
-
         emptyObj = new GameObject("EmptyObject");
         mesh = new Mesh();
         emptyObj.AddComponent<MeshFilter>();
         emptyObj.AddComponent<MeshRenderer>();
         emptyObj.GetComponent<MeshFilter>().mesh = mesh;
+
+        MeshRenderer meshRenderer = emptyObj.GetComponent<MeshRenderer>();
+        meshRenderer.material = new Material(Shader.Find("Transparent/Diffuse"));
+
+        Renderer renderer = emptyObj.GetComponent<Renderer>();
+        Color oldColor = Color.yellow;
+        renderer.material.SetColor("_Color", new Color(oldColor.r, oldColor.g, oldColor.b, 0.5f));
     }
 
     void Update()
@@ -177,6 +262,7 @@ public class TraceGun : MonoBehaviour
         if (_ray.Angle != _angle && 360 % _angle == 0)
         {
             _ray.RayCount = 4 * (360 / _angle);
+            _ray.VertexCount = 360 / _angle;
             _ray.Angle = _angle;
         }
     }

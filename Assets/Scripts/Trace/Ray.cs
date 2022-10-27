@@ -7,10 +7,13 @@ public class Ray : MonoBehaviour
     Sphere _sphere;
 
     int _rayCount;
+    int _vertexCount;
     int _angle;
     float _radius = 0.2f;
-    float _deltaAngle = 0;
+    [SerializeField] bool _deltaAngleSwitch = true;
+    [SerializeField] float _deltaAngle = 0;
     public int RayCount { get { return _rayCount; } set { _rayCount = value; } }
+    public int VertexCount { get { return _vertexCount; } set { _vertexCount = value; } }
     public int Angle { get { return _angle; } set { _angle = value; } }
     public float Radius { get { return _radius; } set { _radius = value; } }
 
@@ -73,6 +76,10 @@ public class Ray : MonoBehaviour
             _rayOriginFront.Add(Vector3.zero);
             _rayOriginBack.Add(Vector3.zero);
 
+            _sphere.Count = _sphere.Count + 1;
+        }
+        while (_isRayHitFront.Count < _rayCount + 1)
+        {
             _isRayHitFront.Add(false);
             _isRayHitBack.Add(false);
 
@@ -83,10 +90,8 @@ public class Ray : MonoBehaviour
 
             _frontHitPoint.Add(Vector3.zero);
             _backHitPoint.Add(Vector3.zero);
-
-            _sphere.Count = _sphere.Count + 1;
         }
-        while (_triangle.Count < _rayCount * 3)
+        while (_triangle.Count < _rayCount * 6)
             _triangle.Add(0);
 
         while (_rayOriginFront.Count > _rayCount)
@@ -94,6 +99,10 @@ public class Ray : MonoBehaviour
             _rayOriginFront.RemoveAt(_rayOriginFront.Count - _rayCount);
             _rayOriginBack.RemoveAt(_rayOriginBack.Count - _rayCount);
 
+            _sphere.Count = _sphere.Count - 1;
+        }
+        while (_isRayHitFront.Count > _rayCount + 1)
+        {
             _isRayHitFront.RemoveAt(_isRayHitFront.Count - _rayCount);
             _isRayHitBack.RemoveAt(_isRayHitBack.Count - _rayCount);
 
@@ -102,11 +111,9 @@ public class Ray : MonoBehaviour
 
             _frontHitPoint.RemoveAt(_frontHitPoint.Count - _rayCount);
             _backHitPoint.RemoveAt(_backHitPoint.Count - _rayCount);
-
-            _sphere.Count = _sphere.Count - 1;
         }
-        while (_triangle.Count > _rayCount * 3)
-            _triangle.RemoveAt(_triangle.Count - _rayCount * 3);
+        while (_triangle.Count > _rayCount * 6)
+            _triangle.RemoveAt(_triangle.Count - _rayCount * 6);
     }
 
     void UpdateRayOriginPosition()
@@ -141,7 +148,7 @@ public class Ray : MonoBehaviour
             if (_isRayHitFront[i])
             {
                 _frontHit[i] = frontHit;
-                _frontHitPoint[i] = frontHit.point;
+                _frontHitPoint[i] = frontHit.point - _cam.transform.forward * 0.01f;
 
                 _isRayHitBack[i] = Physics.Raycast(_cam.transform.TransformPoint(_rayOriginBack[i]), -_cam.transform.forward, out backHit, 10f - frontHit.distance, (-1) - (1 << _traceLayer | 1 << _playerLayer));
                 if (_isRayHitBack[i])
@@ -157,28 +164,28 @@ public class Ray : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        // for (int i = 0; i < _frontHit.Count; i++)
-        // {
-        //     if (_isRayHitFront[i])
-        //     {
-        //         Gizmos.color = Color.red;
-        //         Gizmos.DrawLine(_cam.transform.TransformPoint(_rayOriginFront[i]), _frontHit[i].point);
-        //     }
+        for (int i = 0; i < _frontHit.Count; i++)
+        {
+            // if (_isRayHitFront[i])
+            // {
+            //     Gizmos.color = Color.red;
+            //     Gizmos.DrawLine(_cam.transform.TransformPoint(_rayOriginFront[i]), _frontHit[i].point);
+            // }
 
-        //     if (_isRayHitBack[i])
-        //     {
-        //         Gizmos.color = Color.blue;
-        //         Gizmos.DrawLine(_cam.transform.TransformPoint(_rayOriginBack[i]), _backHit[i].point);
-        //     }
-        // }
+            //     if (_isRayHitBack[i])
+            //     {
+            //         Gizmos.color = Color.blue;
+            //         Gizmos.DrawLine(_cam.transform.TransformPoint(_rayOriginBack[i]), _backHit[i].point);
+            //     }
+        }
     }
 
     void FixedUpdate()
     {
         // Debug.Log(string.Format("RayCount = {0}, RayOriginFront.Count = {1}, FrontHitCount = {2}, IsRayHitFrontCount = {3}", _rayCount, _rayOriginFront.Count, _frontHit.Count, _isRayHitFront.Count));
         // Debug.Log(string.Format("TriangleCount = {0}", _triangle.Count));
-        // _deltaAngle += 0.02f;
-        // _deltaAngle %= 360;
+        if (_deltaAngleSwitch) _deltaAngle += 0.02f;
+        _deltaAngle %= 360;
 
         CastRay();
     }
