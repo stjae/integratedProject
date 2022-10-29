@@ -34,8 +34,8 @@ public class Ray : MonoBehaviour
 
     List<int> _frontTriangle;
     List<int> _backTriangle;
-    public List<int> FrontTriangle { get { return _frontTriangle; } set { _frontTriangle = value; } }
-    public List<int> BackTriangle { get { return _backTriangle; } set { _backTriangle = value; } }
+    public List<int> FrontTriangle { get { return _frontTriangle; } }
+    public List<int> BackTriangle { get { return _backTriangle; } }
 
     List<Vector3> _rayOriginFront;
     List<Vector3> _rayOriginBack;
@@ -156,7 +156,7 @@ public class Ray : MonoBehaviour
             RaycastHit backHit;
 
             _isRayHitFront[i] = Physics.Raycast(_cam.transform.TransformPoint(_rayOriginFront[i]), _cam.transform.forward, out frontHit, 10f, (-1) - (1 << _traceLayer | 1 << _traceGun.TraceFaceLayer | 1 << _playerLayer));
-            _isRayHitBack[i] = Physics.Raycast(_cam.transform.TransformPoint(_rayOriginBack[i]), -_cam.transform.forward, out backHit, 10f, (-1) - (1 << _traceLayer | 1 << _traceGun.TraceFaceLayer | 1 << _playerLayer));
+            _isRayHitBack[i] = Physics.Raycast(_cam.transform.TransformPoint(_rayOriginBack[i]), -_cam.transform.forward, out backHit, 10f - frontHit.distance, (-1) - (1 << _traceLayer | 1 << _traceGun.TraceFaceLayer | 1 << _playerLayer));
             if (_isRayHitFront[i] && _isRayHitBack[i])
             {
                 _frontHit[i] = frontHit;
