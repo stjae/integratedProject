@@ -1,21 +1,23 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Sphere : MonoBehaviour
 {
     Ray _ray;
+
     GameObject _sphere;
     GameObject _redSphere;
     GameObject _blueSphere;
     public GameObject RedSphere { get { return _redSphere; } }
     public GameObject BlueSphere { get { return _blueSphere; } }
+
     GameObject _frontCenterSphere;
     GameObject _backCenterSphere;
     List<GameObject> _frontSphere;
     List<GameObject> _backSphere;
     public List<GameObject> FrontSphere { get { return _frontSphere; } }
     public List<GameObject> BackSphere { get { return _backSphere; } }
+
     int _count;
     public int Count { get { return _count; } set { _count = value; } }
 
@@ -25,7 +27,7 @@ public class Sphere : MonoBehaviour
 
         _sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         _sphere.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
-        _sphere.layer = _ray.TraceLayer;
+        _sphere.layer = Layer.HitSphere;
 
         _redSphere = Instantiate(_sphere, Vector3.zero, Quaternion.identity);
         Renderer redSphereRenderer = _redSphere.GetComponent<Renderer>();
@@ -97,6 +99,18 @@ public class Sphere : MonoBehaviour
             {
                 _backSphere[i].SetActive(false);
             }
+        }
+    }
+
+    public void InstantiateObject()
+    {
+        for (int i = 0; i < _ray.RayCount; i++)
+        {
+            GameObject _frontTrace = Instantiate(_frontSphere[i], _ray.FrontHit[i].point, Quaternion.identity);
+            GameObject _backTrace = Instantiate(_backSphere[i], _ray.BackHit[i].point, Quaternion.identity);
+
+            Destroy(_frontTrace, 2f);
+            Destroy(_backTrace, 2f);
         }
     }
 

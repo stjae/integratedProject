@@ -11,7 +11,7 @@ public class Ray : MonoBehaviour
     int _vertexCount;
     int _angle;
     float _radius = 0.2f;
-    [SerializeField] bool _deltaAngleSwitch = true;
+    [SerializeField] bool _deltaAngleSwitch = false;
     [SerializeField] float _deltaAngle = 0;
     public int RayCount { get { return _rayCount; } set { _rayCount = value; } }
     public int VertexCount { get { return _vertexCount; } set { _vertexCount = value; } }
@@ -34,20 +34,22 @@ public class Ray : MonoBehaviour
 
     List<int> _frontTriangle;
     List<int> _backTriangle;
+    List<int> _sideTriangle;
     public List<int> FrontTriangle { get { return _frontTriangle; } }
     public List<int> BackTriangle { get { return _backTriangle; } }
+    public List<int> SideTriangle { get { return _sideTriangle; } }
 
     List<Vector3> _rayOriginFront;
     List<Vector3> _rayOriginBack;
     Dictionary<string, int> _rayIndex;
+    Dictionary<int, string> _rayIndexReversed;
     public List<Vector3> RayOriginFront { get { return _rayOriginFront; } }
     public List<Vector3> RayOriginBack { get { return _rayOriginBack; } }
     public Dictionary<string, int> RayIndex { get { return _rayIndex; } }
+    public Dictionary<int, string> RayIndexReversed { get { return _rayIndexReversed; } }
 
-    int _traceLayer;
-    int _playerLayer;
-    public int TraceLayer { get { return _traceLayer; } }
-    public int PlayerLayer { get { return _playerLayer; } }
+    List<bool> _isBorderVertex;
+    public List<bool> IsBorderVertex { get { return _isBorderVertex; } }
 
     void Start()
     {
@@ -66,12 +68,13 @@ public class Ray : MonoBehaviour
         _rayOriginFront = new List<Vector3>();
         _rayOriginBack = new List<Vector3>();
         _rayIndex = new Dictionary<string, int>();
+        _rayIndexReversed = new Dictionary<int, string>();
 
         _frontTriangle = new List<int>();
         _backTriangle = new List<int>();
+        _sideTriangle = new List<int>();
 
-        _traceLayer = LayerMask.NameToLayer("Trace");
-        _playerLayer = LayerMask.NameToLayer("Player");
+        _isBorderVertex = new List<bool>();
     }
 
     void UpdateRayOriginCount()
@@ -81,7 +84,7 @@ public class Ray : MonoBehaviour
             _rayOriginFront.Add(Vector3.zero);
             _rayOriginBack.Add(Vector3.zero);
 
-            _sphere.Count = _sphere.Count + 1;
+            _sphere.Count += 1;
         }
         while (_isRayHitFront.Count < _rayCount + 1)
         {
@@ -95,11 +98,14 @@ public class Ray : MonoBehaviour
 
             _frontHitPoint.Add(Vector3.zero);
             _backHitPoint.Add(Vector3.zero);
+
+            _isBorderVertex.Add(false);
         }
         while (_frontTriangle.Count < _rayCount * 6)
         {
             _frontTriangle.Add(0);
             _backTriangle.Add(0);
+            _sideTriangle.Add(0);
         }
 
         while (_rayOriginFront.Count > _rayCount)
@@ -107,7 +113,7 @@ public class Ray : MonoBehaviour
             _rayOriginFront.RemoveAt(_rayOriginFront.Count - _rayCount);
             _rayOriginBack.RemoveAt(_rayOriginBack.Count - _rayCount);
 
-            _sphere.Count = _sphere.Count - 1;
+            _sphere.Count -= 1;
         }
         while (_isRayHitFront.Count > _rayCount + 1)
         {
@@ -119,11 +125,14 @@ public class Ray : MonoBehaviour
 
             _frontHitPoint.RemoveAt(_frontHitPoint.Count - _rayCount);
             _backHitPoint.RemoveAt(_backHitPoint.Count - _rayCount);
+
+            _isBorderVertex.RemoveAt(_isBorderVertex.Count - _rayCount);
         }
         while (_frontTriangle.Count > _rayCount * 6)
         {
             _frontTriangle.RemoveAt(_frontTriangle.Count - _rayCount * 6);
             _backTriangle.RemoveAt(_backTriangle.Count - _rayCount * 6);
+            _sideTriangle.RemoveAt(_backTriangle.Count - _rayCount * 6);
         }
     }
 
@@ -137,6 +146,7 @@ public class Ray : MonoBehaviour
             for (int i = firstIndex; i < firstIndex + (360 / _angle); i++)
             {
                 _rayIndex[string.Format("{0}{1}", j, i - firstIndex)] = i;
+                _rayIndexReversed[i] = string.Format("{0} {1}", j, i - firstIndex);
 
                 _rayOriginFront[i] = Quaternion.AngleAxis(_angle * (i + _deltaAngle), Vector3.forward) * (Vector3.left * (_radius - ((_radius / 4) * j)));
                 _rayOriginBack[i] = Quaternion.AngleAxis(_angle * (i + _deltaAngle), Vector3.forward) * (Vector3.left * (_radius - ((_radius / 4) * j)) + Vector3.forward * 10);
@@ -155,8 +165,8 @@ public class Ray : MonoBehaviour
             RaycastHit frontHit;
             RaycastHit backHit;
 
-            _isRayHitFront[i] = Physics.Raycast(_cam.transform.TransformPoint(_rayOriginFront[i]), _cam.transform.forward, out frontHit, 10f, (-1) - (1 << _traceLayer | 1 << _traceGun.TraceFaceLayer | 1 << _playerLayer));
-            _isRayHitBack[i] = Physics.Raycast(_cam.transform.TransformPoint(_rayOriginBack[i]), -_cam.transform.forward, out backHit, 10f - frontHit.distance, (-1) - (1 << _traceLayer | 1 << _traceGun.TraceFaceLayer | 1 << _playerLayer));
+            _isRayHitFront[i] = Physics.Raycast(_cam.transform.TransformPoint(_rayOriginFront[i]), _cam.transform.forward, out frontHit, 10f, (-1) - (1 << Layer.HitSphere | 1 << Layer.TraceFace | 1 << Layer.Player));
+            _isRayHitBack[i] = Physics.Raycast(_cam.transform.TransformPoint(_rayOriginBack[i]), -_cam.transform.forward, out backHit, 10f - frontHit.distance, (-1) - (1 << Layer.HitSphere | 1 << Layer.TraceFace | 1 << Layer.Player));
             if (_isRayHitFront[i] && _isRayHitBack[i])
             {
                 _frontHit[i] = frontHit;
@@ -171,6 +181,73 @@ public class Ray : MonoBehaviour
                 _isRayHitBack[i] = false;
             }
         }
+    }
+
+    public void GetRayHitCenter()
+    {
+        Vector3 frontCenterPosition = Vector3.zero;
+        Vector3 backCenterPosition = Vector3.zero;
+        int frontHitCount;
+        int backHitCount;
+
+        int firstIndex = 0;
+        int lastIndex = _rayCount - 1;
+        bool isFrontCenterPositionSet = false;
+        bool isBackCenterPositionSet = false;
+
+        for (int j = 0; j < 4; j++)
+        {
+            frontHitCount = 0;
+            backHitCount = 0;
+            bool isHitFrontCenter = false;
+            bool isHitBackCenter = false;
+
+            for (int i = lastIndex; i > lastIndex - _vertexCount; i--)
+            {
+                if (_isRayHitFront[i] && !isFrontCenterPositionSet)
+                {
+                    isHitFrontCenter = true;
+                    frontCenterPosition += _frontHit[i].point;
+                    frontHitCount++;
+                }
+                if (_isRayHitBack[i] && !isBackCenterPositionSet)
+                {
+                    isHitBackCenter = true;
+                    backCenterPosition += _backHit[i].point;
+                    backHitCount++;
+                }
+
+                firstIndex = i;
+            }
+            lastIndex = firstIndex - 1;
+
+            if (isHitFrontCenter && !isFrontCenterPositionSet)
+            {
+                frontCenterPosition.x /= frontHitCount;
+                frontCenterPosition.y /= frontHitCount;
+                frontCenterPosition.z /= frontHitCount;
+
+                isFrontCenterPositionSet = true;
+            }
+            if (isHitBackCenter && !isBackCenterPositionSet)
+            {
+                backCenterPosition.x /= backHitCount;
+                backCenterPosition.y /= backHitCount;
+                backCenterPosition.z /= backHitCount;
+
+                isBackCenterPositionSet = true;
+            }
+        }
+
+        RaycastHit frontCenterHit;
+        RaycastHit backCenterHit;
+        _isRayHitFront[_isRayHitFront.Count - 1] = Physics.Raycast(_cam.transform.position, frontCenterPosition - _cam.transform.position, out frontCenterHit, 10f, (-1) - (1 << Layer.HitSphere | 1 << Layer.Player));
+        _isRayHitBack[_isRayHitBack.Count - 1] = Physics.Raycast(_cam.transform.TransformPoint(Vector3.forward * 10), backCenterPosition - _cam.transform.TransformPoint(Vector3.forward * 10), out backCenterHit, 10f - frontCenterHit.distance, (-1) - (1 << Layer.HitSphere | 1 << Layer.Player));
+
+        _frontHit[_frontHit.Count - 1] = frontCenterHit;
+        _backHit[_backHit.Count - 1] = backCenterHit;
+        _frontHitPoint[_frontHitPoint.Count - 1] = frontCenterHit.point;
+        _backHitPoint[_backHitPoint.Count - 1] = backCenterHit.point;
     }
 
     void OnDrawGizmos()
