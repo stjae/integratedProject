@@ -15,6 +15,10 @@ public class Door : MonoBehaviour
     private bool isTriggered;
     private bool useButton;
 
+    private AudioSource audioSource;
+    public AudioClip openingSFX;
+    private bool isSFXplayed;
+
     private void Awake()
     {
         initPos = transform.position;
@@ -22,6 +26,11 @@ public class Door : MonoBehaviour
         isTriggered = false;
 
         useButton = button != null;
+
+        audioSource = GetComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.clip = openingSFX;
+        isSFXplayed = false;
     }
 
     private void Update()
@@ -32,10 +41,17 @@ public class Door : MonoBehaviour
             if (button.IsTriggered)
             {
                 timer += Time.deltaTime;
+
+                if (openingSFX != null && !isSFXplayed)
+                {
+                    audioSource.Play();
+                    isSFXplayed = true;
+                }
             }
             else
             {
                 timer -= Time.deltaTime;
+                isSFXplayed = false;
             }
             timer = Mathf.Clamp(timer, 0.0f, duration);
             transform.position = timer * finalPos + (1 - timer) * initPos;
@@ -46,10 +62,17 @@ public class Door : MonoBehaviour
             if (isTriggered)
             {
                 timer += Time.deltaTime;
+
+                if (openingSFX != null && !isSFXplayed)
+                {
+                    audioSource.Play();
+                    isSFXplayed = true;
+                }
             }
             else
             {
                 timer -= Time.deltaTime;
+                isSFXplayed = false;
             }
             timer = Mathf.Clamp(timer, 0.0f, duration);
             transform.position = timer * finalPos + (1 - timer) * initPos;
