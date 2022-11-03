@@ -22,6 +22,15 @@ public sealed class SceneLoader : MonoBehaviour
                     break;
             }
         }
+        else if(sd.Chapter == 1)
+        {
+            switch(sd.Level)
+            {
+                case 0:
+                    SceneManager.LoadScene("ch1_level0");
+                    break;
+            }
+        }
         else
         {
             // if failed to load scene, open popup

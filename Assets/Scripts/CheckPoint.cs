@@ -16,6 +16,7 @@ public class CheckPoint : MonoBehaviour
     public int chapter;
     public int level;
     public int checkpoint;
+    public bool nextScene = false;
 
     private void Awake()
     {
@@ -27,12 +28,15 @@ public class CheckPoint : MonoBehaviour
 
     private void Start()
     {
-        GameObject player = GameObject.Find("Player");
-
-        if(checkpoint == saveManager.GetSaveData().Checkpoint)
+        if(!nextScene)
         {
-            player.transform.position = transform.position;
-            Debug.Log("move player");
+            GameObject player = GameObject.Find("Player");
+
+            if (checkpoint == saveManager.GetSaveData().Checkpoint)
+            {
+                player.transform.position = transform.position;
+                Debug.Log("move player");
+            }
         }
     }
 
@@ -40,14 +44,26 @@ public class CheckPoint : MonoBehaviour
     {
         if(other.gameObject.GetComponent<Player>() != null)
         {
-            SaveData sd = new SaveData();
+            SaveData sd = saveManager.GetSaveData();
             sd.Chapter = chapter;
             sd.Level = level;
             sd.Checkpoint = checkpoint;
 
             saveManager.GetSaveData() = sd;
             saveManager.Save();
+
+            TextMessageUI textMessageUI = FindObjectOfType<TextMessageUI>(true);
+            if(textMessageUI != null)
+            {
+                textMessageUI.PrintMessage("Game Saved!", 3000); // 3 seconds
+            }
             Debug.Log("game saved");
+
+            if (nextScene)
+            {
+                Debug.Log("load next scene");
+                SceneLoader.LoadSceneWithSaveData();
+            }
         }
     }
 }

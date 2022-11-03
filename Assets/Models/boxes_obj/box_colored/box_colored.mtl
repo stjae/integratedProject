@@ -1,0 +1,15 @@
+# Blender MTL File: 'box_source.blend'
+# Material Count: 1
+
+newmtl Crate_colored
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.108272 0.108272 0.108272
+Ks 0.000000 0.000000 0.000000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 1
+map_Bump /home/linux/Dokumente/Open_Projects/Duoban_source/pbr_bake/box_colored_normal.png
+map_Ns /home/linux/Dokumente/Open_Projects/Duoban_source/pbr_bake/box_colored_roughness.png
+refl /home/linux/Dokumente/Open_Projects/Duoban_source/pbr_bake/box_colored_metalness.png

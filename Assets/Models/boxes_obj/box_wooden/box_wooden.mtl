@@ -1,0 +1,14 @@
+# Blender MTL File: 'box_source.blend'
+# Material Count: 1
+
+newmtl Crate_wooden
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.108272 0.108272 0.108272
+Ks 1.000000 1.000000 1.000000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump box_wooden_normal.png
+map_Ns box_wooden_roughness.png
