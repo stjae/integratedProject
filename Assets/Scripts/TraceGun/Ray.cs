@@ -27,10 +27,12 @@ public class Ray : MonoBehaviour
     List<RaycastHit> _backHit;
     List<Vector3> _frontHitPoint;
     List<Vector3> _backHitPoint;
+    List<int> _frontCenterIdx;
     public List<RaycastHit> FrontHit { get { return _frontHit; } }
     public List<RaycastHit> BackHit { get { return _backHit; } }
     public List<Vector3> FrontHitPoint { get { return _frontHitPoint; } }
     public List<Vector3> BackHitPoint { get { return _backHitPoint; } }
+    public List<int> FrontCenterIdx { get { return _frontCenterIdx; } }
 
     List<int> _frontTriangle;
     List<int> _backTriangle;
@@ -61,6 +63,7 @@ public class Ray : MonoBehaviour
         _backHit = new List<RaycastHit>();
         _frontHitPoint = new List<Vector3>();
         _backHitPoint = new List<Vector3>();
+        _frontCenterIdx = new List<int>();
 
         _isRayHitFront = new List<bool>();
         _isRayHitBack = new List<bool>();
@@ -183,71 +186,51 @@ public class Ray : MonoBehaviour
         }
     }
 
-    public void GetRayHitCenter()
+    public void SetRayHitCenter()
     {
-        Vector3 frontCenterPosition = Vector3.zero;
-        Vector3 backCenterPosition = Vector3.zero;
-        int frontHitCount;
-        int backHitCount;
-
-        int firstIndex = 0;
-        int lastIndex = _rayCount - 1;
-        bool isFrontCenterPositionSet = false;
-        bool isBackCenterPositionSet = false;
-
-        for (int j = 0; j < 4; j++)
-        {
-            frontHitCount = 0;
-            backHitCount = 0;
-            bool isHitFrontCenter = false;
-            bool isHitBackCenter = false;
-
-            for (int i = lastIndex; i > lastIndex - _vertexCount; i--)
-            {
-                if (_isRayHitFront[i] && !isFrontCenterPositionSet)
-                {
-                    isHitFrontCenter = true;
-                    frontCenterPosition += _frontHit[i].point;
-                    frontHitCount++;
-                }
-                if (_isRayHitBack[i] && !isBackCenterPositionSet)
-                {
-                    isHitBackCenter = true;
-                    backCenterPosition += _backHit[i].point;
-                    backHitCount++;
-                }
-
-                firstIndex = i;
-            }
-            lastIndex = firstIndex - 1;
-
-            if (isHitFrontCenter && !isFrontCenterPositionSet)
-            {
-                frontCenterPosition.x /= frontHitCount;
-                frontCenterPosition.y /= frontHitCount;
-                frontCenterPosition.z /= frontHitCount;
-
-                isFrontCenterPositionSet = true;
-            }
-            if (isHitBackCenter && !isBackCenterPositionSet)
-            {
-                backCenterPosition.x /= backHitCount;
-                backCenterPosition.y /= backHitCount;
-                backCenterPosition.z /= backHitCount;
-
-                isBackCenterPositionSet = true;
-            }
-        }
-
         RaycastHit frontCenterHit;
         RaycastHit backCenterHit;
-        _isRayHitFront[_isRayHitFront.Count - 1] = Physics.Raycast(_cam.transform.position, frontCenterPosition - _cam.transform.position, out frontCenterHit, 10f, (-1) - (1 << Layer.HitSphere | 1 << Layer.Player));
-        _isRayHitBack[_isRayHitBack.Count - 1] = Physics.Raycast(_cam.transform.TransformPoint(Vector3.forward * 10), backCenterPosition - _cam.transform.TransformPoint(Vector3.forward * 10), out backCenterHit, 10f - frontCenterHit.distance, (-1) - (1 << Layer.HitSphere | 1 << Layer.Player));
+        Vector3 frontCenterPosition = Vector3.zero;
+        Vector3 backCenterPosition = Vector3.zero;
 
+        _isRayHitFront[_isRayHitFront.Count - 1] = Physics.Raycast(_cam.transform.position, _cam.transform.forward, out frontCenterHit, 10f, (-1) - (1 << Layer.HitSphere | 1 << Layer.Player));
+        _isRayHitBack[_isRayHitBack.Count - 1] = Physics.Raycast(_cam.transform.TransformPoint(Vector3.forward * 10f), _cam.transform.TransformDirection(Vector3.back), out backCenterHit, 10f - frontCenterHit.distance, (-1) - (1 << Layer.HitSphere | 1 << Layer.Player));
         _frontHit[_frontHit.Count - 1] = frontCenterHit;
         _backHit[_backHit.Count - 1] = backCenterHit;
         _frontHitPoint[_frontHitPoint.Count - 1] = frontCenterHit.point;
         _backHitPoint[_backHitPoint.Count - 1] = backCenterHit.point;
+
+        int count = 0;
+
+        for (int i = 0; i < _vertexCount; i++)
+        {
+            if (_isBorderVertex[_rayIndex["3" + i]])
+            {
+                count++;
+
+                frontCenterPosition += FrontHitPoint[_rayIndex["3" + i]];
+                backCenterPosition += BackHitPoint[_rayIndex["3" + i]];
+            }
+        }
+
+        if (count > 0)
+        {
+            frontCenterPosition.x /= count;
+            frontCenterPosition.y /= count;
+            frontCenterPosition.z /= count;
+
+            backCenterPosition.x /= count;
+            backCenterPosition.y /= count;
+            backCenterPosition.z /= count;
+        }
+
+        _frontHitPoint[_frontHitPoint.Count - 1] = frontCenterPosition;
+        _backHitPoint[_backHitPoint.Count - 1] = backCenterPosition;
+
+        if (frontCenterPosition == Vector3.zero)
+            _frontHitPoint[_frontHitPoint.Count - 1] = frontCenterHit.point;
+        if (backCenterPosition == Vector3.zero)
+            _backHitPoint[_backHitPoint.Count - 1] = backCenterHit.point;
     }
 
     void OnDrawGizmos()

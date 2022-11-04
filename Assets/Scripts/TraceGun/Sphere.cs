@@ -1,13 +1,16 @@
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 
 public class Sphere : MonoBehaviour
 {
     Ray _ray;
+    FirstPersonCamera _cam;
 
     GameObject _sphere;
     GameObject _redSphere;
     GameObject _blueSphere;
+    GameObject _whiteTraceSphere;
     public GameObject RedSphere { get { return _redSphere; } }
     public GameObject BlueSphere { get { return _blueSphere; } }
 
@@ -18,16 +21,28 @@ public class Sphere : MonoBehaviour
     public List<GameObject> FrontSphere { get { return _frontSphere; } }
     public List<GameObject> BackSphere { get { return _backSphere; } }
 
+    List<Vector3> _tracePoint;
+    List<GameObject> _traceSphere;
+
     int _count;
     public int Count { get { return _count; } set { _count = value; } }
+
+    Coroutine coroutine;
 
     void Start()
     {
         _ray = gameObject.GetComponent<Ray>();
+        _cam = transform.GetComponentInParent<Player>().Camera;
 
         _sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        _sphere.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
+        _sphere.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
         _sphere.layer = Layer.HitSphere;
+
+        _whiteTraceSphere = Instantiate(_sphere, Vector3.zero, Quaternion.identity);
+        _tracePoint = new List<Vector3>();
+        _traceSphere = new List<GameObject>();
+
+        _sphere.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
 
         _redSphere = Instantiate(_sphere, Vector3.zero, Quaternion.identity);
         Renderer redSphereRenderer = _redSphere.GetComponent<Renderer>();
@@ -62,7 +77,7 @@ public class Sphere : MonoBehaviour
 
     void UpdateSpherePosition()
     {
-        for (int i = 0; i < _ray.RayCount; i++)
+        for (int i = 0; i < _ray.VertexCount; i++)
         {
             if (_ray.IsRayHitFront[i])
             {
@@ -79,27 +94,75 @@ public class Sphere : MonoBehaviour
             }
             else
             {
-                _frontSphere[i].SetActive(false);
+                // _frontSphere[i].SetActive(false);
+                _frontSphere[i].transform.position = Vector3.Lerp(_frontSphere[i].transform.position, _cam.transform.TransformPoint(_ray.RayOriginFront[i] + Vector3.forward * 5), Time.deltaTime * 16f);
             }
+            // if (_ray.IsRayHitBack[i])
+            // {
+            //     if (!_backSphere[i].activeSelf)
+            //     {
+            //         _backSphere[i].SetActive(true);
+            //         _backSphere[i].transform.position = _ray.BackHit[i].point;
+            //     }
+            //     else
+            //     {
+            //         _backSphere[i].SetActive(true);
+            //         _backSphere[i].transform.position = Vector3.Lerp(_backSphere[i].transform.position, _ray.BackHit[i].point, Time.deltaTime * 16f);
+            //     }
+            // }
+            // else
+            // {
+            //     _backSphere[i].SetActive(false);
+            // }
+        }
+    }
 
-            if (_ray.IsRayHitBack[i])
+    public void CreateTracePoint()
+    {
+        if (coroutine != null)
+            StopCoroutine(coroutine);
+        _tracePoint.Clear();
+        GameObject[] trace = GameObject.FindGameObjectsWithTag("trace");
+        if (trace.Length > 0)
+        {
+            foreach (GameObject obj in trace)
             {
-                if (!_backSphere[i].activeSelf)
-                {
-                    _backSphere[i].SetActive(true);
-                    _backSphere[i].transform.position = _ray.BackHit[i].point;
-                }
-                else
-                {
-                    _backSphere[i].SetActive(true);
-                    _backSphere[i].transform.position = Vector3.Lerp(_backSphere[i].transform.position, _ray.BackHit[i].point, Time.deltaTime * 16f);
-                }
-            }
-            else
-            {
-                _backSphere[i].SetActive(false);
+                Destroy(obj);
             }
         }
+
+        for (int i = 0; i < _ray.RayCount; i++)
+        {
+            RaycastHit frontHit;
+            RaycastHit backHit;
+            float random = Random.Range(-0.05f, 0.05f);
+            for (int j = 0; j < 5; j++)
+            {
+                bool isHit = Physics.Raycast(_cam.transform.TransformPoint(_ray.RayOriginFront[i]) - _cam.transform.forward, _cam.transform.forward + Vector3.right * random + Vector3.up * random, out frontHit, 10f, 1 << Layer.TraceFace);
+                if (isHit)
+                    _tracePoint.Add(frontHit.point);
+                bool isHit2 = Physics.Raycast(frontHit.point, _cam.transform.forward + Vector3.right * random + Vector3.up * random, out backHit, 10f, 1 << Layer.TraceFace);
+                if (isHit2)
+                    _tracePoint.Add(backHit.point);
+            }
+        }
+
+        if (_tracePoint.Count > 0)
+            coroutine = StartCoroutine(CreateTrace(0));
+    }
+
+    IEnumerator CreateTrace(int index)
+    {
+        Renderer sphereRenderer;
+        GameObject whiteTrace = Instantiate(_whiteTraceSphere, _tracePoint[index], Quaternion.identity);
+        whiteTrace.tag = "trace";
+        sphereRenderer = whiteTrace.GetComponent<Renderer>();
+        sphereRenderer.material.SetColor("_Color", Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
+
+        yield return new WaitForSeconds(0.0001f);
+
+        if (index < _tracePoint.Count - 1)
+            StartCoroutine(CreateTrace(index + 1));
     }
 
     public void InstantiateObject()

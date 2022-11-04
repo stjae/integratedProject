@@ -10,21 +10,20 @@ public class TraceGun : MonoBehaviour
 
     Ray _ray;
     Triangle _triangle;
+    Sphere _sphere;
 
     public void Fire()
     {
-        _ray.GetRayHitCenter();
-
         _triangle.CreateTriangle();
         _triangle.CreateShape();
+        _sphere.CreateTracePoint();
     }
 
     void Start()
     {
         _ray = gameObject.AddComponent<Ray>();
         _triangle = gameObject.AddComponent<Triangle>();
-
-        gameObject.AddComponent<Sphere>();
+        _sphere = gameObject.AddComponent<Sphere>();
     }
 
     void Update()
