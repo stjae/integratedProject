@@ -5,10 +5,7 @@ using UnityEngine;
 public class Sphere : MonoBehaviour
 {
     Ray _ray;
-<<<<<<< HEAD
     FirstPersonCamera _cam;
-=======
->>>>>>> 5c1df6e60a7dde2b9a69c46f83e296720e9b1e0e
 
     GameObject _sphere;
     GameObject _redSphere;
@@ -24,12 +21,9 @@ public class Sphere : MonoBehaviour
     public List<GameObject> FrontSphere { get { return _frontSphere; } }
     public List<GameObject> BackSphere { get { return _backSphere; } }
 
-<<<<<<< HEAD
     List<Vector3> _tracePoint;
     List<GameObject> _traceSphere;
 
-=======
->>>>>>> 5c1df6e60a7dde2b9a69c46f83e296720e9b1e0e
     int _count;
     public int Count { get { return _count; } set { _count = value; } }
 
@@ -49,10 +43,8 @@ public class Sphere : MonoBehaviour
         _traceSphere = new List<GameObject>();
 
         _sphere.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
-<<<<<<< HEAD
-=======
+
         _sphere.layer = Layer.HitSphere;
->>>>>>> 5c1df6e60a7dde2b9a69c46f83e296720e9b1e0e
 
         _redSphere = Instantiate(_sphere, Vector3.zero, Quaternion.identity);
         Renderer redSphereRenderer = _redSphere.GetComponent<Renderer>();
@@ -173,18 +165,6 @@ public class Sphere : MonoBehaviour
 
         if (index < _tracePoint.Count - 1)
             StartCoroutine(CreateTrace(index + 1));
-    }
-
-    public void InstantiateObject()
-    {
-        for (int i = 0; i < _ray.RayCount; i++)
-        {
-            GameObject _frontTrace = Instantiate(_frontSphere[i], _ray.FrontHit[i].point, Quaternion.identity);
-            GameObject _backTrace = Instantiate(_backSphere[i], _ray.BackHit[i].point, Quaternion.identity);
-
-            Destroy(_frontTrace, 2f);
-            Destroy(_backTrace, 2f);
-        }
     }
 
     public void InstantiateObject()
