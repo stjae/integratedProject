@@ -10,6 +10,7 @@ public class TraceGun : MonoBehaviour
 
     Ray _ray;
     Triangle _triangle;
+<<<<<<< HEAD
     Sphere _sphere;
 
     public void Fire()
@@ -17,13 +18,27 @@ public class TraceGun : MonoBehaviour
         _triangle.CreateTriangle();
         _triangle.CreateShape();
         _sphere.CreateTracePoint();
+=======
+
+    public void Fire()
+    {
+        _ray.GetRayHitCenter();
+
+        _triangle.CreateTriangle();
+        _triangle.CreateShape();
+>>>>>>> 5c1df6e60a7dde2b9a69c46f83e296720e9b1e0e
     }
 
     void Start()
     {
         _ray = gameObject.AddComponent<Ray>();
         _triangle = gameObject.AddComponent<Triangle>();
+<<<<<<< HEAD
         _sphere = gameObject.AddComponent<Sphere>();
+=======
+
+        gameObject.AddComponent<Sphere>();
+>>>>>>> 5c1df6e60a7dde2b9a69c46f83e296720e9b1e0e
     }
 
     void Update()
