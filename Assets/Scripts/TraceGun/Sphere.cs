@@ -158,6 +158,7 @@ public class Sphere : MonoBehaviour
         Renderer sphereRenderer;
         GameObject whiteTrace = Instantiate(_whiteTraceSphere, _tracePoint[index], Quaternion.identity);
         whiteTrace.tag = "trace";
+        whiteTrace.GetComponent<SphereCollider>().enabled = false;
         sphereRenderer = whiteTrace.GetComponent<Renderer>();
         sphereRenderer.material.SetColor("_Color", Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
 

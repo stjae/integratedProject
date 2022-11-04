@@ -423,6 +423,9 @@ public class Triangle : MonoBehaviour
         _frontFaceObj.layer = Layer.TraceFace;
         _backFaceObj.layer = Layer.TraceFace;
         _sideFaceObj.layer = Layer.TraceFace;
+        _frontFaceObj.tag = "object";
+        _backFaceObj.tag = "object";
+        _sideFaceObj.tag = "object";
         _frontFaceMesh = new Mesh();
         _backFaceMesh = new Mesh();
         _sideFaceMesh = new Mesh();
